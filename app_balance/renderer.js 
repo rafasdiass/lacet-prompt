@@ -1,0 +1,18 @@
+document.getElementById('analyzeBtn').addEventListener('click', async () => {
+  if (!selectedFilePath) {
+    return alert('Selecione um arquivo primeiro!');
+  }
+
+  try {
+    const analysisResult = await ipcRenderer.invoke('process-file', selectedFilePath);
+    document.getElementById('result').textContent = `Resultado da análise:\n${analysisResult}`;
+  } catch (error) {
+    document.getElementById('result').textContent = `Erro: ${error}`;
+  }
+});
+document.addEventListener('DOMContentLoaded', () => {
+  const dashContainer = document.getElementById('dash-container');
+  dashContainer.innerHTML = `
+    <iframe src="http://localhost:5000/dash/" style="width: 100%; height: 100%; border: none;"></iframe>
+  `;
+});

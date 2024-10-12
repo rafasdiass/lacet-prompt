@@ -1,0 +1,16 @@
+flask
+flask-bcrypt
+flask-caching
+flask-wtf
+flask-sqlalchemy
+flask-login
+flask-migrate
+flask-debugtoolbar
+flask-static-digest
+pytest
+pandas
+PyPDF2
+openpyxl
+plotly                 # Para gráficos interativos
+dash                   # Para construir dashboards interativos
+dash-bootstrap-components # Componentes de interface mais ricos para Dash
