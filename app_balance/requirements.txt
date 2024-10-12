@@ -1,16 +1,20 @@
-flask
-flask-bcrypt
-flask-caching
-flask-wtf
-flask-sqlalchemy
-flask-login
-flask-migrate
-flask-debugtoolbar
-flask-static-digest
-pytest
+# Interface gráfica com PyQt
+PyQt5
+
+# Manipulação de dados e análise de arquivos
 pandas
-PyPDF2
 openpyxl
-plotly                 # Para gráficos interativos
-dash                   # Para construir dashboards interativos
-dash-bootstrap-components # Componentes de interface mais ricos para Dash
+PyPDF2
+
+# Para análise financeira, cálculos e gráficos
+numpy
+scipy
+matplotlib
+seaborn
+plotly
+
+# Modelos de séries temporais e previsões
+statsmodels
+
+# Análise detalhada de dados financeiros
+pandas_profiling
