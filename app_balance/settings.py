@@ -14,9 +14,14 @@ env.read_env()
 
 class Config:
     """Configurações básicas do aplicativo."""
+    
+    # Configurações de Ambiente
     ENV = env.str("FLASK_ENV", default="production")
     DEBUG = ENV == "development"
     SECRET_KEY = env.str("SECRET_KEY", default="sua-chave-secreta")
+
+    # Configuração para desativar a parte web e usar GUI
+    USE_GUI = env.bool("USE_GUI", default=True)
 
     # Configuração do Banco de Dados
     SQLALCHEMY_DATABASE_URI = env.str("DATABASE_URL", default="sqlite:///dev.db")
@@ -29,12 +34,14 @@ class Config:
     # Configurações de Segurança
     BCRYPT_LOG_ROUNDS = env.int("BCRYPT_LOG_ROUNDS", default=13)
 
-    # Configurações de Arquivos Estáticos
+    # Configurações de Arquivos Estáticos (apenas se a parte web for mantida)
     SEND_FILE_MAX_AGE_DEFAULT = env.int("SEND_FILE_MAX_AGE_DEFAULT", default=0)
 
-    # Configurações de Debug Toolbar
-    DEBUG_TB_ENABLED = DEBUG
-    DEBUG_TB_INTERCEPT_REDIRECTS = False
-
     # Configurações de Log
-    LOG_LEVEL = env.str("LOG_LEVEL", default="debug")
+    LOG_LEVEL = env.str("LOG_LEVEL", default="info")
+
+    # Configurações para a interface GUI (se estiver usando uma interface gráfica)
+    GUI_WIDTH = env.int("GUI_WIDTH", default=800)
+    GUI_HEIGHT = env.int("GUI_HEIGHT", default=600)
+    GUI_TITLE = env.str("GUI_TITLE", default="App de Análise de Custos")
+

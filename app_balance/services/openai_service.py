@@ -11,16 +11,8 @@ env.read_env()
 openai.api_key = env.str("OPENAI_API_KEY")
 
 def analyze_data(prompt: str) -> str:
-    """Interage com a API do OpenAI para analisar dados com base no prompt fornecido.
-
-    Args:
-        prompt (str): O prompt para ser enviado ao modelo GPT-4.
-
-    Returns:
-        str: A resposta gerada pela API.
-    """
+    """Interage com a API do OpenAI para analisar dados com base no prompt fornecido."""
     try:
-        # Enviar o prompt para o OpenAI
         response = openai.Completion.create(
             engine="text-davinci-004",  # Pode ser "gpt-4" dependendo do setup
             prompt=prompt,
