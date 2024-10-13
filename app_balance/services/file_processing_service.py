@@ -62,7 +62,7 @@ class FileProcessingService:
             self.salvar_recebimentos_no_db(recebimentos)
 
             # Gera o prompt e envia para o GPT-4
-            prompt = self.gpt_service.gerar_prompt_recebimentos(recebimentos)
+            prompt = self.prompt_service.gerar_prompt_recebimentos(recebimentos)
             resposta_gpt = self.gpt_service.enviar_prompt(prompt)
 
             return resposta_gpt  # Retorna a resposta gerada pelo GPT-4 para exibição

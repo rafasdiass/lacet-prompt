@@ -1,48 +1,69 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, Date
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, Date
+from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime
 
-# Declarative base para criar modelos do SQLAlchemy
+# Configuração do banco de dados SQLite
+DATABASE_URL = 'sqlite:///recebimentos.db'
+engine = create_engine(DATABASE_URL)
+Session = sessionmaker(bind=engine)
+session = Session()
+
+# Base declarativa
 Base = declarative_base()
 
+# Definindo o modelo Recebimento
 class Recebimento(Base):
-    """
-    Modelo que representa os dados de um recebimento.
-    """
     __tablename__ = 'recebimentos'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    data = Column(Date, nullable=False)  # Data do recebimento
-    valor = Column(Float, nullable=False)  # Valor do recebimento
+    data = Column(Date, nullable=False)
+    valor = Column(Float, nullable=False)
+    categoria = Column(String, nullable=True)  # Categoria opcional
+    descricao = Column(String, nullable=True)  # Descrição opcional
 
     def __repr__(self):
         return f"<Recebimento(id={self.id}, data={self.data}, valor={self.valor})>"
 
+# Definindo o modelo Despesa
+class Despesa(Base):
+    __tablename__ = 'despesas'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    data = Column(Date, nullable=False)
+    valor = Column(Float, nullable=False)
+    categoria = Column(String, nullable=True)  # Categoria opcional
+    descricao = Column(String, nullable=True)  # Descrição opcional
+
+    def __repr__(self):
+        return f"<Despesa(id={self.id}, data={self.data}, valor={self.valor})>"
+
+# Definindo o modelo Prompt
 class Prompt(Base):
-    """
-    Modelo que representa os prompts enviados ao GPT-4.
-    """
     __tablename__ = 'prompts'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    conteudo = Column(String, nullable=False)  # Conteúdo do prompt
-    resposta = Column(String, nullable=True)  # Resposta do GPT-4
-    data = Column(DateTime, default=datetime.now, nullable=False)  # Data do envio do prompt
+    conteudo = Column(String, nullable=False)
+    resposta = Column(String, nullable=True)
+    data = Column(DateTime, default=datetime.now, nullable=False)
 
     def __repr__(self):
         return f"<Prompt(id={self.id}, conteudo={self.conteudo}, data={self.data})>"
 
+# Definindo o modelo Usuario
 class Usuario(Base):
-    """
-    Modelo que representa as preferências do usuário.
-    """
     __tablename__ = 'usuarios'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    nome = Column(String, nullable=False)  # Nome do usuário
-    preferencias_tom = Column(String, default="casual")  # Preferências de tom: 'sarcastico', 'compreensivo', 'padrao'
-    idioma_preferido = Column(String, default="pt")  # Idioma preferido: 'pt', 'en'
-    data_registro = Column(DateTime, default=datetime.now)  # Data de registro do usuário
+    nome = Column(String, nullable=False)
+    preferencias_tom = Column(String, default="casual")
+    idioma_preferido = Column(String, default="pt")
+    data_registro = Column(DateTime, default=datetime.now)
 
     def __repr__(self):
         return f"<Usuario(id={self.id}, nome={self.nome}, preferencias_tom={self.preferencias_tom}, idioma_preferido={self.idioma_preferido})>"
+
+# Função para criar as tabelas no banco de dados
+def criar_tabelas():
+    Base.metadata.create_all(engine)
+    print("Banco de dados configurado e tabelas criadas com sucesso!")

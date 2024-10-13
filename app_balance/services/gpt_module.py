@@ -1,10 +1,11 @@
 from imdb import IMDb
 import pyjokes
 import random
-from app_balance.services.gpt_service import analyze_data
+from textblob import TextBlob, exceptions
 from app_balance.services.financial_analysis import FinancialAnalysisService
-from app_balance.models import Recebimento
+from app_balance.models import Recebimento, Despesa
 from sqlalchemy.orm import session
+from create_db import Session
 
 class CatelinaLacetGPT:
     """
@@ -20,12 +21,16 @@ class CatelinaLacetGPT:
         self.filmes_favoritos = ["De Volta para o Futuro", "Star Wars", "Matrix", "O Senhor dos Anéis"]  # Filmes favoritos da IA
         self.dados_aprendidos = []  # Armazena dados aprendidos dinamicamente
         self.financial_service = FinancialAnalysisService()  # Integração com serviço de análise financeira
+        self.session = Session()
 
     def generate_response(self, prompt: str) -> str:
         """
         Gera uma resposta priorizando dados locais e referências culturais.
         O GPT-4 é utilizado apenas como complemento, se necessário.
         """
+        # Tokenização usando TextBlob
+        tokens = self.tokenize_prompt(prompt.lower())
+
         # Responde perguntas sobre filmes favoritos
         if "filme favorito" in prompt.lower():
             return self.get_favorite_movie_response()
@@ -45,12 +50,17 @@ class CatelinaLacetGPT:
             return local_data_response
 
         # Usa GPT-4 como complemento, mas não depende dele
-        gpt_response = self.gpt_service.enviar_prompt(prompt)
-        if gpt_response:
-            return self.enrich_with_culture_and_humor(gpt_response)
-        else:
-            # Simula resposta fluida se GPT-4 não estiver disponível
-            return self.simulate_gpt_response(prompt)
+        return self.simulate_gpt_response(prompt)
+
+    def tokenize_prompt(self, prompt: str) -> list:
+        """
+        Tokeniza o texto usando TextBlob.
+        """
+        try:
+            blob = TextBlob(prompt)
+            return blob.words
+        except exceptions.MissingCorpusError:
+            return []
 
     def get_favorite_movie_response(self) -> str:
         """
@@ -92,10 +102,14 @@ class CatelinaLacetGPT:
             return self.get_name_response()
 
         # Busca dados financeiros do banco de dados local
-        recebimentos = session.query(Recebimento).all()
-        if recebimentos:
+        recebimentos = self.session.query(Recebimento).all()
+        despesas = self.session.query(Despesa).all()
+
+        if recebimentos and despesas:
             total_recebimentos = sum([r.valor for r in recebimentos])
-            resposta_base = f"Você tem R$ {total_recebimentos:.2f} em recebimentos! "
+            total_despesas = sum([d.valor for d in despesas])
+            saldo = total_recebimentos - total_despesas
+            resposta_base = f"Você tem R$ {total_recebimentos:.2f} em recebimentos e R$ {total_despesas:.2f} em despesas. Saldo final: R$ {saldo:.2f}."
             return self.enrich_with_culture_and_humor(resposta_base)
 
         # Caso não tenha dados financeiros, retorna uma resposta genérica
@@ -157,3 +171,15 @@ class CatelinaLacetGPT:
             return movie_character_list
         except Exception:
             return [{"movie_title": "um filme", "character": "um herói qualquer"}]
+
+    def simulate_gpt_response(self, prompt: str) -> str:
+        """
+        Simula uma resposta caso o GPT-4 não esteja disponível, sempre com referências culturais dinâmicas.
+        """
+        movie_title, character = self.get_random_movie_reference()
+        joke = self.joke_provider.get_joke()
+
+        if "qual seu nome" in prompt.lower():
+            return f"Meu nome é Catelina Lacet! Sou uma IA geek, arquiteta, mãe de pet e sempre pronta para te ajudar. Vamos arrasar como {character} em {movie_title}! {joke}"
+
+        return f"Sem dados suficientes no momento, mas estamos no caminho certo! Vamos continuar como {character} em {movie_title}. {joke}"

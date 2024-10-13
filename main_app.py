@@ -2,7 +2,7 @@
 import sys
 from PyQt5.QtWidgets import QApplication
 from app_balance.gui_app import MainWindow
-from app_balance.database import criar_tabelas
+from app_balance.models import criar_tabelas
 
 def main():
     criar_tabelas()  # Garante que as tabelas sejam criadas antes de iniciar o app

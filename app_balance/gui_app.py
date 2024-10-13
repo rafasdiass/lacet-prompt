@@ -1,19 +1,10 @@
-from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QPushButton, QLabel, QFileDialog, QWidget, QLineEdit, QTextEdit, QHBoxLayout, QMessageBox, QScrollArea
+from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QPushButton, QLabel, QFileDialog, QWidget, QLineEdit, QTextEdit, QHBoxLayout, QScrollArea
 from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtGui import QPixmap, QIcon
 import qtawesome
-from app_balance.services.gpt_service import GPTService
+from app_balance.services.gpt_module import CatelinaLacetGPT
 from app_balance.services.file_processing_service import FileProcessingService
 from app_balance.services.user_preferences_service import UserPreferencesService
-from app_balance.models import Recebimento
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy import create_engine
-
-# Configuração do banco de dados
-DATABASE_URL = 'sqlite:///recebimentos.db'
-engine = create_engine(DATABASE_URL)
-Session = sessionmaker(bind=engine)
-session = Session()
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -22,8 +13,8 @@ class MainWindow(QMainWindow):
         self.setGeometry(100, 100, 1000, 800)
         self.setStyleSheet("background-color: #000000; color: #EDEDED; font-family: 'Arial', sans-serif;")
 
-        # Inicializando serviços
-        self.gpt_service = GPTService()
+        # Inicializando a IA personalizada e serviços
+        self.cateline_lacet_gpt = CatelinaLacetGPT()
         self.file_service = FileProcessingService()
         self.user_preferences_service = UserPreferencesService()
 
@@ -90,7 +81,7 @@ class MainWindow(QMainWindow):
         self.input_field.setMinimumHeight(60)
         input_layout.addWidget(self.input_field)
 
-        # Botões ao lado do campo de input
+        # Botão de enviar pergunta
         send_button = QPushButton()
         send_button.setIcon(QIcon(qtawesome.icon('fa.send', color='black')))
         send_button.setIconSize(QSize(30, 30))
@@ -98,22 +89,25 @@ class MainWindow(QMainWindow):
         send_button.clicked.connect(self.enviar_pergunta)
         input_layout.addWidget(send_button)
 
+        # Botão de análise de custos
         self.analyze_cost_button = QPushButton()
         self.analyze_cost_button.setIcon(QIcon(qtawesome.icon('fa.money', color='black')))
         self.analyze_cost_button.setIconSize(QSize(30, 30))
         self.analyze_cost_button.setStyleSheet("background-color: #C0C0C0; border-radius: 8px;")
-        self.analyze_cost_button.setEnabled(True)
+        self.analyze_cost_button.setEnabled(False)
         self.analyze_cost_button.clicked.connect(self.mensagem_arquivo_necessario)
         input_layout.addWidget(self.analyze_cost_button)
 
+        # Botão de análise de investimentos
         self.analyze_investment_button = QPushButton()
         self.analyze_investment_button.setIcon(QIcon(qtawesome.icon('fa.line-chart', color='black')))
         self.analyze_investment_button.setIconSize(QSize(30, 30))
         self.analyze_investment_button.setStyleSheet("background-color: #C0C0C0; border-radius: 8px;")
-        self.analyze_investment_button.setEnabled(True)
+        self.analyze_investment_button.setEnabled(False)
         self.analyze_investment_button.clicked.connect(self.mensagem_arquivo_necessario)
         input_layout.addWidget(self.analyze_investment_button)
 
+        # Botão de upload de arquivo
         upload_button = QPushButton()
         upload_button.setIcon(QIcon(qtawesome.icon('fa.upload', color='black')))
         upload_button.setIconSize(QSize(30, 30))
@@ -131,7 +125,7 @@ class MainWindow(QMainWindow):
     def enviar_pergunta(self):
         """Envia a pergunta digitada ao GPT-4 e exibe a resposta, priorizando dados locais."""
         prompt = self.input_field.text()
-        resposta = self.gpt_service.enviar_prompt(prompt)
+        resposta = self.cateline_lacet_gpt.generate_response(prompt)
         self.result_display.append(f"<p style='color: cyan;'>Você: {prompt}</p>")
         self.result_display.append(f"<p style='color: yellow;'>Catelina Lacet: {resposta}</p>")
         self.input_field.clear()
