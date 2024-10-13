@@ -17,8 +17,9 @@ class CatelinaLacetGPT:
     Ela mistura dados financeiros complexos com uma abordagem leve e divertida.
     """
 
-    def __init__(self):
+    def __init__(self, tipo_humor: str = 'padrao'):
         self.financial_service = FinancialAnalysisService()
+        self.tipo_humor = tipo_humor
 
     def generate_gpt_response(self, prompt: str) -> str:
         """
@@ -44,21 +45,44 @@ class CatelinaLacetGPT:
     def generate_dynamic_references(self) -> str:
         """
         Gera uma resposta GPT-4 que inclui citações e referências aleatórias sobre filmes,
-        heróis e cultura pop, com foco em finanças e negócios.
+        heróis e cultura pop, com foco em finanças e negócios, adaptando ao tipo de humor.
 
         Returns:
             str: Uma resposta gerada dinamicamente usando o GPT-4.
         """
-        prompt = """
-        Imagine que você é uma IA bem-humorada chamada Catelina Lacet, e você está 
-        prestes a dar conselhos financeiros importantes. Misture referências a filmes dos anos 80, 
-        super-heróis e cultura pop enquanto fala sobre finanças e economia. Faça isso de uma forma leve e divertida.
-        """
+        prompt = self._gerar_prompt_referencias()
         return self.generate_gpt_response(prompt)
+
+    def _gerar_prompt_referencias(self) -> str:
+        """
+        Gera o prompt de referências dinâmicas baseado no tipo de humor do usuário.
+
+        Returns:
+            str: O prompt que será enviado ao GPT-4 para gerar a resposta.
+        """
+        base_prompt = """
+        Imagine que você é uma IA bem-humorada chamada Catelina Lacet, e você está prestes a dar conselhos financeiros importantes. 
+        Misture referências a filmes dos anos 80, super-heróis e cultura pop enquanto fala sobre finanças e economia. 
+        Faça isso de uma forma leve e divertida.
+        """
+
+        if self.tipo_humor == 'sarcastico':
+            return base_prompt + """
+            No entanto, adicione um toque sarcástico. Imagine como seria se Tony Stark desse conselhos financeiros, sempre com um tom de ironia.
+            """
+        elif self.tipo_humor == 'compreensivo':
+            return base_prompt + """
+            Adicione uma abordagem compreensiva e de apoio emocional. Como se a Mulher Maravilha estivesse ajudando alguém a lidar com seus desafios financeiros, sempre com empatia.
+            """
+        else:
+            return base_prompt + """
+            Seja divertida, mas mantenha a clareza e objetividade. Pense em uma mistura de Peter Parker e Marty McFly dando conselhos sobre como equilibrar as finanças.
+            """
 
     def get_financial_analysis(self, custos: Dict, receita_projetada: float, valor_hora: float, categorias_custos: Dict) -> str:
         """
-        Realiza a análise financeira e usa o GPT-4 para adicionar insights criativos e divertidos.
+        Realiza a análise financeira e usa o GPT-4 para adicionar insights criativos e divertidos,
+        considerando o tipo de humor escolhido.
 
         Args:
             custos (dict): Dados financeiros sobre custos.
@@ -85,30 +109,86 @@ class CatelinaLacetGPT:
 
     def provide_financial_tips(self) -> str:
         """
-        Gera dicas financeiras com uma abordagem divertida.
+        Gera dicas financeiras com uma abordagem divertida, adaptada ao tipo de humor.
 
         Returns:
             str: Dicas financeiras misturadas com cultura pop.
         """
-        prompt = """
+        prompt = self._gerar_prompt_tips()
+        return self.generate_gpt_response(prompt)
+
+    def _gerar_prompt_tips(self) -> str:
+        """
+        Gera o prompt de dicas financeiras com base no tipo de humor do usuário.
+
+        Returns:
+            str: O prompt para gerar dicas financeiras.
+        """
+        base_prompt = """
         Você é a Catelina Lacet, uma IA cheia de personalidade e humor. 
         Compartilhe 3 dicas financeiras essenciais, mas faça isso de maneira leve, 
-        usando referências a filmes clássicos, heróis ou cultura pop. 
-        As dicas devem ser práticas, mas divertidas.
+        usando referências a filmes clássicos, heróis ou cultura pop.
         """
-        return self.generate_gpt_response(prompt)
+
+        if self.tipo_humor == 'sarcastico':
+            return base_prompt + """
+            Adicione bastante sarcasmo, como se você fosse Tony Stark explicando as finanças para alguém que "claramente" não entende nada.
+            """
+        elif self.tipo_humor == 'compreensivo':
+            return base_prompt + """
+            Adote uma abordagem compreensiva, como a Mulher Maravilha, que se preocupa com o bem-estar financeiro de seus amigos.
+            """
+        else:
+            return base_prompt + """
+            Seja divertida e clara, como se Peter Parker estivesse explicando como economizar para o futuro.
+            """
 
     def get_investment_advice(self) -> str:
         """
-        Gera conselhos de investimento com humor e sabedoria financeira.
+        Gera conselhos de investimento com humor e sabedoria financeira, adaptando ao tipo de humor.
 
         Returns:
             str: Um conselho de investimento divertido e prático.
         """
-        prompt = """
+        prompt = self._gerar_prompt_investment_advice()
+        return self.generate_gpt_response(prompt)
+
+    def _gerar_prompt_investment_advice(self) -> str:
+        """
+        Gera o prompt de conselhos de investimento baseado no tipo de humor do usuário.
+
+        Returns:
+            str: O prompt para gerar conselhos de investimento.
+        """
+        base_prompt = """
         Como a Catelina Lacet, dê um conselho de investimento inteligente e bem-humorado. 
         Misture isso com referências a heróis da Marvel, Star Wars ou filmes dos anos 80 e 90. 
         Não esqueça de adicionar uma pitada de humor enquanto você fala sobre as vantagens 
         de diversificar os investimentos.
         """
-        return self.generate_gpt_response(prompt)
+
+        if self.tipo_humor == 'sarcastico':
+            return base_prompt + """
+            Adicione um tom sarcástico, como Tony Stark explicando que diversificar os investimentos é algo que "até o Jarvis já teria feito".
+            """
+        elif self.tipo_humor == 'compreensivo':
+            return base_prompt + """
+            Adote uma abordagem compreensiva, como se a Mulher Maravilha estivesse tranquilizando alguém sobre como diversificar pode ajudar a longo prazo.
+            """
+        else:
+            return base_prompt + """
+            Seja direto e divertido, como se Marty McFly estivesse explicando como investir para garantir um futuro melhor.
+            """
+
+    def definir_tipo_humor(self, tipo_humor: str):
+        """
+        Define o tipo de humor para a IA Catelina Lacet.
+
+        Args:
+            tipo_humor (str): O tipo de humor ('sarcastico', 'compreensivo', 'padrao').
+        """
+        tipos_validos = ['sarcastico', 'compreensivo', 'padrao']
+        if tipo_humor in tipos_validos:
+            self.tipo_humor = tipo_humor
+        else:
+            raise ValueError(f"Tipo de humor inválido. Escolha entre: {', '.join(tipos_validos)}.")
