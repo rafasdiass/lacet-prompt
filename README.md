@@ -1,4 +1,5 @@
 
+
 ---
 
 # Lacet Prompt - Finance Balance Application
@@ -28,29 +29,36 @@ cd lacet-prompt
 Siga os passos abaixo para rodar o projeto localmente:
 
 1. Acesse o diretório `app_balance`.
-2. Instale as dependências Python:
+2. Crie um ambiente virtual (opcional, mas recomendado):
+
+   - No macOS/Linux:
+     ```bash
+     python3 -m venv venv
+     source venv/bin/activate
+     ```
+   - No Windows:
+     ```bash
+     python -m venv venv
+     .\venv\Scripts\activate
+     ```
+
+3. Instale as dependências Python:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Execute o aplicativo:
+4. Execute o aplicativo:
 
 ```bash
-python3 main_app.py    
+python3 main_app.py
 ```
 
 ---
 
 ## Inicialização do Banco de Dados
 
-Para inicializar o banco de dados, siga os seguintes passos:
-
-1. Crie o banco de dados e as tabelas executando o seguinte script:
-
-```bash
-python3 app_balance/database.py
-```
+Como o banco de dados já está incluído no repositório, não é necessário criá-lo manualmente. Basta seguir as etapas acima para rodar o projeto e o banco será utilizado automaticamente.
 
 ---
 
@@ -69,29 +77,37 @@ O projeto utiliza uma estrutura de camadas, que inclui:
 
 - **Análise Financeira Automatizada**: Envio de dados financeiros diretamente para GPT-4 para gerar relatórios e análises automáticas.
 - **Upload de Arquivos**: Suporte para upload de arquivos Excel, PDF e DOCX para processamento e análise de dados.
-- **Visualização de Gráficos**: Exibição de gráficos de evolução financeira utilizando Seaborn, Matplotlib, e Plotly.
+- **Visualização de Gráficos**: Exibição de gráficos de evolução financeira utilizando Seaborn, Matplotlib e Plotly.
 
 ---
 
-## Rodando Testes e Linter
+## Gerar o `requirements.txt`
 
-Para rodar os testes e verificar a integridade do projeto:
+Se houver necessidade de gerar um novo arquivo `requirements.txt`, siga os passos:
 
-```bash
-python3 -m unittest discover -s tests
-```
+1. Ative seu ambiente virtual (se estiver usando):
+   
+   ```bash
+   source venv/bin/activate  # Para macOS/Linux
+   .\venv\Scripts\activate   # Para Windows
+   ```
 
-Para rodar o linter e verificar erros de estilo de código:
-
-```bash
-flake8 app_balance
-```
+2. Gere o arquivo `requirements.txt`:
+   
+   ```bash
+   pip freeze > requirements.txt
+   ```
 
 ---
 
-## Gerenciamento de Assets
+## Remoção de Bibliotecas Não Utilizadas
 
-Os arquivos estáticos (imagens, fontes, etc.) estão localizados no diretório `assets`. Certifique-se de que os ativos estejam corretamente referenciados no código.
+Para remover bibliotecas não utilizadas, execute o seguinte comando para cada biblioteca:
+
+```bash
+pip uninstall <nome-da-biblioteca>
+```
+
 
 ---
 
@@ -100,4 +116,13 @@ Os arquivos estáticos (imagens, fontes, etc.) estão localizados no diretório 
 Caso precise de ajuda ou tenha alguma dúvida, entre em contato através do e-mail ou redes sociais do autor.
 
 ---
+
+## Versões Utilizadas
+
+- **Python**: 3.9.6
+- **Pip**: 24.2
+
+---
+
+
 
