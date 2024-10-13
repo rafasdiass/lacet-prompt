@@ -1,5 +1,5 @@
-from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QPushButton, QLabel, QFileDialog, QWidget, QLineEdit, QTextEdit, QHBoxLayout
-from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QPushButton, QLabel, QFileDialog, QWidget, QLineEdit, QTextEdit, QHBoxLayout, QDialog, QComboBox, QDialogButtonBox
+from PyQt5.QtCore import Qt, QSize  # Importando QSize corretamente
 from PyQt5.QtGui import QPixmap, QIcon
 import qtawesome
 from app_balance.services.gpt_service import GPTService
@@ -30,7 +30,8 @@ class MainWindow(QMainWindow):
 
         # Botão de mudar o humor - no canto superior direito
         self.mudar_humor_button = QPushButton()
-        self.mudar_humor_button.setIcon(qtawesome.icon('fa.gear', color='white'))  # Ícone da engrenagem branco
+        self.mudar_humor_button.setIcon(qtawesome.icon('fa.gear', color='white'))
+        self.mudar_humor_button.setIconSize(QSize(40, 40))  # Aumentando o tamanho do ícone corretamente
         self.mudar_humor_button.setStyleSheet("""
             QPushButton {
                 background-color: transparent;
@@ -39,10 +40,10 @@ class MainWindow(QMainWindow):
                 margin: 10px;
             }
             QPushButton:hover {
-                color: #D8BFD8;  /* Muda para uma cor pastel no hover */
+                color: #FFD700;  /* Cor mais clara e visível no hover */
             }
         """)
-        self.mudar_humor_button.clicked.connect(self.mudar_humor)
+        self.mudar_humor_button.clicked.connect(self.abrir_modal_humor)
         top_layout.addWidget(self.mudar_humor_button, alignment=Qt.AlignRight)
         layout.addLayout(top_layout)  # Adiciona o layout de topo ao layout principal
 
@@ -141,10 +142,33 @@ class MainWindow(QMainWindow):
         resposta = self.gpt_service.enviar_prompt(prompt)
         self.result_display.setText(resposta)
 
-    def mudar_humor(self):
-        """Altera o humor e exibe a nova configuração."""
-        novo_humor = self.user_preferences_service.mudar_humor()
-        self.result_display.setText(f"Humor alterado para: {novo_humor}")
+    def abrir_modal_humor(self):
+        """Abre um modal para o usuário selecionar o humor."""
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Selecione o Humor")
+        dialog.setFixedSize(300, 200)
+
+        layout = QVBoxLayout()
+
+        # ComboBox para seleção do humor
+        humor_combo = QComboBox(dialog)
+        humor_combo.addItems(['Padrão', 'Sarcastico', 'Compreensivo'])
+        layout.addWidget(humor_combo)
+
+        # Botões para confirmar ou cancelar
+        button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        button_box.accepted.connect(lambda: self.set_humor(humor_combo.currentText(), dialog))
+        button_box.rejected.connect(dialog.reject)
+        layout.addWidget(button_box)
+
+        dialog.setLayout(layout)
+        dialog.exec_()
+
+    def set_humor(self, humor: str, dialog: QDialog):
+        """Define o humor com base na escolha do usuário."""
+        self.user_preferences_service.set_humor(humor.lower())
+        self.result_display.setText(f"Humor alterado para: {humor}")
+        dialog.accept()
 
     def upload_file(self):
         """Permite o upload de arquivos PDF, Excel ou DOCX para processamento."""
