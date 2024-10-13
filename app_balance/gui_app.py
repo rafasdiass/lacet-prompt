@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QPushButton, QLabel, QFileDialog, QWidget, QLineEdit, QTextEdit, QHBoxLayout, QDialog, QComboBox, QDialogButtonBox, QMessageBox
-from PyQt5.QtCore import Qt, QSize  # Importando QSize corretamente
+from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtGui import QPixmap, QIcon
 import qtawesome
 from app_balance.services.gpt_service import GPTService
@@ -20,7 +20,7 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("Catelina Lacet - Sua IA Financeira com Senso de Humor!")
         self.setGeometry(100, 100, 1000, 800)
-        self.setStyleSheet("background-color: #000000; color: #EDEDED; font-family: 'Roboto', sans-serif;")
+        self.setStyleSheet("background-color: #000000; color: #EDEDED; font-family: 'Arial', sans-serif;")
 
         # Inicializando serviços
         self.gpt_service = GPTService()
@@ -30,28 +30,28 @@ class MainWindow(QMainWindow):
         # Definir os estilos dos botões
         self.button_style_enabled = """
             QPushButton {
-                background-color: #E6E6FA;  /* Cor pastel */
+                background-color: #E6E6FA;
                 color: black;
                 font-size: 16px;
                 padding: 10px;
                 border-radius: 8px;
                 min-width: 250px;
-                margin-top: 20px;  /* Adicionando margem superior */
+                margin-top: 20px;
             }
             QPushButton:hover {
-                background-color: #D8BFD8;  /* Hover em uma cor pastel mais escura */
+                background-color: #D8BFD8;
             }
         """
 
         self.button_style_disabled = """
             QPushButton {
-                background-color: #C0C0C0;  /* Tom mais claro para indicar desabilitado */
-                color: black;  /* Ícones e texto continuam pretos */
+                background-color: #C0C0C0;
+                color: black;
                 font-size: 16px;
                 padding: 10px;
                 border-radius: 8px;
                 min-width: 250px;
-                margin-top: 20px;  /* Adicionando margem superior */
+                margin-top: 20px;
             }
         """
 
@@ -63,12 +63,12 @@ class MainWindow(QMainWindow):
 
         # Criar layout para o botão de mudança de humor no topo direito
         top_layout = QHBoxLayout()
-        top_layout.addStretch()  # Adiciona espaço à esquerda
+        top_layout.addStretch()
 
         # Botão de mudar o humor - no canto superior direito
         self.mudar_humor_button = QPushButton()
         self.mudar_humor_button.setIcon(qtawesome.icon('fa.gear', color='white'))
-        self.mudar_humor_button.setIconSize(QSize(40, 40))  # Aumentando o tamanho do ícone corretamente
+        self.mudar_humor_button.setIconSize(QSize(40, 40))
         self.mudar_humor_button.setStyleSheet("""
             QPushButton {
                 background-color: transparent;
@@ -77,26 +77,26 @@ class MainWindow(QMainWindow):
                 margin: 10px;
             }
             QPushButton:hover {
-                color: #FFD700;  /* Cor mais clara e visível no hover */
+                color: #FFD700;
             }
         """)
         self.mudar_humor_button.clicked.connect(self.abrir_modal_humor)
         top_layout.addWidget(self.mudar_humor_button, alignment=Qt.AlignRight)
-        layout.addLayout(top_layout)  # Adiciona o layout de topo ao layout principal
+        layout.addLayout(top_layout)
 
         # Adicionando o logotipo
         self.logo = QLabel()
         pixmap = QPixmap('assets/LOGO-BRANCA.PNG')
         self.logo.setPixmap(pixmap)
         self.logo.setAlignment(Qt.AlignCenter)
-        self.logo.setFixedSize(400, 150)  # Reduzindo o tamanho da logo
-        self.logo.setScaledContents(True)  # Mantém a qualidade ao redimensionar
+        self.logo.setFixedSize(400, 150)
+        self.logo.setScaledContents(True)
         layout.addWidget(self.logo)
 
         # Mensagem de boas-vindas
         self.welcome_message = QLabel(self.get_dynamic_welcome_message())
-        self.welcome_message.setWordWrap(True)  # Quebra de linha automática para textos longos
-        self.welcome_message.setStyleSheet("color: yellow; font-size: 24px; font-family: 'Roboto', sans-serif;")
+        self.welcome_message.setWordWrap(True)
+        self.welcome_message.setStyleSheet("color: yellow; font-size: 24px; font-family: 'Arial', sans-serif;")
         self.welcome_message.setAlignment(Qt.AlignCenter)
         layout.addWidget(self.welcome_message)
 
@@ -113,14 +113,14 @@ class MainWindow(QMainWindow):
         # Botão para análise de custos
         self.analyze_cost_button = QPushButton("Análise de Custos")
         self.analyze_cost_button.setIcon(qtawesome.icon('fa.money', color='black'))
-        self.analyze_cost_button.setStyleSheet(self.button_style_disabled)  # Inicialmente desabilitado
+        self.analyze_cost_button.setStyleSheet(self.button_style_disabled)
         self.analyze_cost_button.clicked.connect(self.mensagem_arquivo_necessario)
         button_layout.addWidget(self.analyze_cost_button)
 
         # Botão para análise de investimentos
         self.analyze_investment_button = QPushButton("Análise de Investimentos")
         self.analyze_investment_button.setIcon(qtawesome.icon('fa.line-chart', color='black'))
-        self.analyze_investment_button.setStyleSheet(self.button_style_disabled)  # Inicialmente desabilitado
+        self.analyze_investment_button.setStyleSheet(self.button_style_disabled)
         self.analyze_investment_button.clicked.connect(self.mensagem_arquivo_necessario)
         button_layout.addWidget(self.analyze_investment_button)
 
@@ -135,8 +135,8 @@ class MainWindow(QMainWindow):
         footer_layout = QHBoxLayout()
         self.input_field = QLineEdit(self)
         self.input_field.setPlaceholderText("Digite sua pergunta para a Catelina Lacet...")
-        self.input_field.setStyleSheet("font-size: 16px; padding: 20px; background-color: #696969; color: white;")  # Campo de input maior e fundo cinza escuro
-        self.input_field.setMinimumHeight(80)  # Aumenta o tamanho do campo de input
+        self.input_field.setStyleSheet("font-size: 16px; padding: 20px; background-color: #696969; color: white;")
+        self.input_field.setMinimumHeight(80)
 
         # Botão de envio dentro do campo de input
         send_button = QPushButton()
@@ -165,7 +165,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(central_widget)
 
     def enviar_pergunta(self):
-        """Envia a pergunta digitada ao GPT-4 e exibe a resposta."""
+        """Envia a pergunta digitada ao GPT-4 e exibe a resposta, ou usa dados locais se cota estiver excedida."""
         prompt = self.input_field.text()
         resposta = self.gpt_service.enviar_prompt(prompt)
         self.result_display.setText(resposta)
@@ -180,7 +180,7 @@ class MainWindow(QMainWindow):
 
         # ComboBox para seleção do humor
         humor_combo = QComboBox(dialog)
-        humor_combo.addItems(['Padrão', 'Compreensivo', 'Sarcastico'])  # Ordem ajustada
+        humor_combo.addItems(['Padrão', 'Compreensivo', 'Sarcastico'])
         layout.addWidget(humor_combo)
 
         # Botões para confirmar ou cancelar
@@ -195,7 +195,7 @@ class MainWindow(QMainWindow):
     def set_humor(self, humor: str, dialog: QDialog):
         """Define o humor com base na escolha do usuário."""
         self.user_preferences_service.set_humor(humor.lower())
-        self.welcome_message.setText(self.get_dynamic_welcome_message())  # Atualiza a mensagem de boas-vindas
+        self.welcome_message.setText(self.get_dynamic_welcome_message())
         dialog.accept()
 
     def upload_file(self):
@@ -205,7 +205,7 @@ class MainWindow(QMainWindow):
 
         if file_path:
             try:
-                file_type = file_path.split('.')[-1].lower()  # Detectar o tipo de arquivo
+                file_type = file_path.split('.')[-1].lower()
                 with open(file_path, 'rb') as f:
                     file_data = f.read()
                 resposta_gpt = self.file_service.processar_arquivo(file_data, file_type)
@@ -213,8 +213,8 @@ class MainWindow(QMainWindow):
                 # Habilita os botões após o envio do arquivo
                 self.analyze_cost_button.setEnabled(True)
                 self.analyze_investment_button.setEnabled(True)
-                self.analyze_cost_button.setStyleSheet(self.button_style_enabled)  # Aplicar estilo ativo
-                self.analyze_investment_button.setStyleSheet(self.button_style_enabled)  # Aplicar estilo ativo
+                self.analyze_cost_button.setStyleSheet(self.button_style_enabled)
+                self.analyze_investment_button.setStyleSheet(self.button_style_enabled)
                 # Alterar ações dos botões para análise real
                 self.analyze_cost_button.clicked.connect(self.analyze_costs)
                 self.analyze_investment_button.clicked.connect(self.analyze_investments)
@@ -259,7 +259,7 @@ class MainWindow(QMainWindow):
     def get_dynamic_welcome_message(self):
         """Retorna uma mensagem de boas-vindas dinâmica com base no humor atual."""
         humor = self.user_preferences_service.get_humor_atual()
-        welcome = "Bem-vinda, Catherine!\n"  # Linha de boas-vindas fixa
+        welcome = "Bem-vinda, Catherine!\n"
         if humor == 'sarcastico':
             return welcome + "Prepare-se para aprender mais sobre finanças... se é que você entende algo disso."
         elif humor == 'compreensivo':

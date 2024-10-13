@@ -9,6 +9,7 @@ class GPTService:
     def enviar_prompt(self, prompt: str) -> str:
         """
         Envia um prompt para o GPT-4 e retorna a resposta.
+        Se falhar por exceder cota, retorna uma resposta simulada.
 
         Args:
             prompt (str): O prompt a ser enviado.
