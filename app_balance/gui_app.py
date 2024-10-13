@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QPushButton, QLabel, QFileDialog, QWidget, QLineEdit, QTextEdit, QHBoxLayout, QDialog, QComboBox, QDialogButtonBox
+from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QPushButton, QLabel, QFileDialog, QWidget, QLineEdit, QTextEdit, QHBoxLayout, QDialog, QComboBox, QDialogButtonBox, QMessageBox
 from PyQt5.QtCore import Qt, QSize  # Importando QSize corretamente
 from PyQt5.QtGui import QPixmap, QIcon
 import qtawesome
@@ -26,6 +26,34 @@ class MainWindow(QMainWindow):
         self.gpt_service = GPTService()
         self.file_service = FileProcessingService()
         self.user_preferences_service = UserPreferencesService()
+
+        # Definir os estilos dos botões
+        self.button_style_enabled = """
+            QPushButton {
+                background-color: #E6E6FA;  /* Cor pastel */
+                color: black;
+                font-size: 16px;
+                padding: 10px;
+                border-radius: 8px;
+                min-width: 250px;
+                margin-top: 20px;  /* Adicionando margem superior */
+            }
+            QPushButton:hover {
+                background-color: #D8BFD8;  /* Hover em uma cor pastel mais escura */
+            }
+        """
+
+        self.button_style_disabled = """
+            QPushButton {
+                background-color: #C0C0C0;  /* Tom mais claro para indicar desabilitado */
+                color: black;  /* Ícones e texto continuam pretos */
+                font-size: 16px;
+                padding: 10px;
+                border-radius: 8px;
+                min-width: 250px;
+                margin-top: 20px;  /* Adicionando margem superior */
+            }
+        """
 
         # Inicializando a interface de usuário
         self.setup_ui()
@@ -67,6 +95,7 @@ class MainWindow(QMainWindow):
 
         # Mensagem de boas-vindas
         self.welcome_message = QLabel(self.get_dynamic_welcome_message())
+        self.welcome_message.setWordWrap(True)  # Quebra de linha automática para textos longos
         self.welcome_message.setStyleSheet("color: yellow; font-size: 24px; font-family: 'Roboto', sans-serif;")
         self.welcome_message.setAlignment(Qt.AlignCenter)
         layout.addWidget(self.welcome_message)
@@ -74,55 +103,25 @@ class MainWindow(QMainWindow):
         # Criar layout horizontal para os botões centrais
         button_layout = QHBoxLayout()
 
-        # Configuração dos botões com estilos corrigidos e margem superior
-        button_style_enabled = """
-            QPushButton {
-                background-color: #E6E6FA;  /* Cor pastel */
-                color: black;
-                font-size: 16px;
-                padding: 10px;
-                border-radius: 8px;
-                min-width: 250px;
-                margin-top: 20px;  /* Adicionando margem superior */
-            }
-            QPushButton:hover {
-                background-color: #D8BFD8;  /* Hover em uma cor pastel mais escura */
-            }
-        """
-
-        button_style_disabled = """
-            QPushButton {
-                background-color: #D3D3D3;  /* Cor para botão desativado */
-                color: black;
-                font-size: 16px;
-                padding: 10px;
-                border-radius: 8px;
-                min-width: 250px;
-                margin-top: 20px;  /* Adicionando margem superior */
-            }
-        """
-
         # Botão de upload de arquivos (PDF, Excel, DOCX)
         self.upload_button = QPushButton("Enviar Arquivo")
         self.upload_button.setIcon(qtawesome.icon('fa.upload', color='black'))
-        self.upload_button.setStyleSheet(button_style_enabled)
+        self.upload_button.setStyleSheet(self.button_style_enabled)
         self.upload_button.clicked.connect(self.upload_file)
         button_layout.addWidget(self.upload_button)
 
         # Botão para análise de custos
         self.analyze_cost_button = QPushButton("Análise de Custos")
         self.analyze_cost_button.setIcon(qtawesome.icon('fa.money', color='black'))
-        self.analyze_cost_button.setStyleSheet(button_style_disabled)
-        self.analyze_cost_button.setEnabled(False)
-        self.analyze_cost_button.clicked.connect(self.analyze_costs)
+        self.analyze_cost_button.setStyleSheet(self.button_style_disabled)  # Inicialmente desabilitado
+        self.analyze_cost_button.clicked.connect(self.mensagem_arquivo_necessario)
         button_layout.addWidget(self.analyze_cost_button)
 
         # Botão para análise de investimentos
         self.analyze_investment_button = QPushButton("Análise de Investimentos")
         self.analyze_investment_button.setIcon(qtawesome.icon('fa.line-chart', color='black'))
-        self.analyze_investment_button.setStyleSheet(button_style_disabled)
-        self.analyze_investment_button.setEnabled(False)
-        self.analyze_investment_button.clicked.connect(self.analyze_investments)
+        self.analyze_investment_button.setStyleSheet(self.button_style_disabled)  # Inicialmente desabilitado
+        self.analyze_investment_button.clicked.connect(self.mensagem_arquivo_necessario)
         button_layout.addWidget(self.analyze_investment_button)
 
         layout.addLayout(button_layout)
@@ -181,7 +180,7 @@ class MainWindow(QMainWindow):
 
         # ComboBox para seleção do humor
         humor_combo = QComboBox(dialog)
-        humor_combo.addItems(['Padrão', 'Sarcastico', 'Compreensivo'])
+        humor_combo.addItems(['Padrão', 'Compreensivo', 'Sarcastico'])  # Ordem ajustada
         layout.addWidget(humor_combo)
 
         # Botões para confirmar ou cancelar
@@ -214,8 +213,11 @@ class MainWindow(QMainWindow):
                 # Habilita os botões após o envio do arquivo
                 self.analyze_cost_button.setEnabled(True)
                 self.analyze_investment_button.setEnabled(True)
-                self.analyze_cost_button.setStyleSheet(button_style_enabled)  # Aplicar estilo ativo
-                self.analyze_investment_button.setStyleSheet(button_style_enabled)  # Aplicar estilo ativo
+                self.analyze_cost_button.setStyleSheet(self.button_style_enabled)  # Aplicar estilo ativo
+                self.analyze_investment_button.setStyleSheet(self.button_style_enabled)  # Aplicar estilo ativo
+                # Alterar ações dos botões para análise real
+                self.analyze_cost_button.clicked.connect(self.analyze_costs)
+                self.analyze_investment_button.clicked.connect(self.analyze_investments)
             except Exception as e:
                 self.result_display.setText(f"Erro ao processar o arquivo: {str(e)}")
 
@@ -257,9 +259,22 @@ class MainWindow(QMainWindow):
     def get_dynamic_welcome_message(self):
         """Retorna uma mensagem de boas-vindas dinâmica com base no humor atual."""
         humor = self.user_preferences_service.get_humor_atual()
+        welcome = "Bem-vinda, Catherine!\n"  # Linha de boas-vindas fixa
         if humor == 'sarcastico':
-            return "Bem-vinda, Catherine! Prepare-se para aprender mais sobre finanças... se é que você entende algo disso."
+            return welcome + "Prepare-se para aprender mais sobre finanças... se é que você entende algo disso."
         elif humor == 'compreensivo':
-            return "Bem-vinda, Catherine! Vamos juntos conquistar sua estabilidade financeira com calma e paciência."
+            return welcome + "Vamos juntos conquistar sua estabilidade financeira com calma e paciência."
         else:
-            return "Bem-vinda, Catherine! Vamos começar a jornada para dominar suas finanças!"
+            return welcome + "Vamos começar a jornada para dominar suas finanças!"
+
+    def mensagem_arquivo_necessario(self):
+        """Exibe mensagem quando tentam usar botões desativados."""
+        self.show_message("É necessário enviar os arquivos antes de realizar a análise.")
+
+    def show_message(self, message: str):
+        """Exibe uma mensagem ao usuário."""
+        msg_box = QMessageBox()
+        msg_box.setIcon(QMessageBox.Information)
+        msg_box.setText(message)
+        msg_box.setWindowTitle("Informação")
+        msg_box.exec_()
