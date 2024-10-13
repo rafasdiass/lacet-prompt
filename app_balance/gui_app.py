@@ -1,4 +1,3 @@
-# app_balance/gui_app.py
 import os
 import sys
 import numpy as np  # Usado para cálculos matemáticos
@@ -9,11 +8,11 @@ import seaborn as sns  # Para exibir gráficos de receitas
 import plotly.express as px  # Alternativa para gráficos interativos
 from PyQt5.QtWidgets import (
     QMainWindow, QVBoxLayout, QPushButton, QLabel, QFileDialog,
-    QWidget, QMessageBox, QLineEdit, QTextEdit
+    QWidget, QMessageBox, QLineEdit, QTextEdit, QComboBox, QDialog, QHBoxLayout
 )
 from PyQt5.QtChart import QChart, QChartView, QPieSeries
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QPainter, QPixmap
+from PyQt5.QtGui import QPainter, QPixmap, QIcon
 from environs import Env  # Para carregar a chave do OpenAI a partir do .env
 from datetime import datetime
 from typing import Dict
@@ -36,7 +35,7 @@ class MainWindow(QMainWindow):
         """)
 
         self.prompt_service = PromptService()
-        self.catelina_gpt = CatelinaLacetGPT()
+        self.catelina_gpt = CatelinaLacetGPT()  # Inicializa com humor padrão
 
         # Inicializa as variáveis de dados reais
         self.real_cost_data = None
@@ -53,6 +52,18 @@ class MainWindow(QMainWindow):
         self.logo.setFixedSize(200, 100)
         self.logo.setScaledContents(True)
         layout.addWidget(self.logo)
+
+        # Botão de engrenagem para mudar humor
+        self.humor_button = QPushButton(" Humor")
+        self.humor_button.setIcon(qtawesome.icon('fa.cog', color='black'))
+        self.humor_button.setStyleSheet("""
+            background-color: #F8F4E3;
+            color: black;
+            font-size: 16px;
+            padding: 10px;
+        """)
+        self.humor_button.clicked.connect(self.abrir_mudanca_humor_dialogo)
+        layout.addWidget(self.humor_button)
 
         # Mensagem de boas-vindas dinâmica, gerada pela Catelina Lacet
         self.label = QLabel(self.catelina_gpt.generate_dynamic_references())
@@ -126,6 +137,41 @@ class MainWindow(QMainWindow):
         central_widget = QWidget()
         central_widget.setLayout(layout)
         self.setCentralWidget(central_widget)
+
+    def abrir_mudanca_humor_dialogo(self):
+        """
+        Abre um diálogo para o usuário escolher o tipo de humor da IA.
+        """
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Escolher Humor")
+        dialog.setGeometry(300, 300, 300, 150)
+
+        dialog_layout = QVBoxLayout()
+
+        humor_selector = QComboBox(dialog)
+        humor_selector.addItems(['Padrão', 'Sarcastico', 'Compreensivo'])
+        humor_selector.setStyleSheet("font-size: 16px; padding: 10px;")
+        humor_selector.currentIndexChanged.connect(lambda: self.set_humor_type(humor_selector.currentText()))
+        dialog_layout.addWidget(humor_selector)
+
+        confirmar_button = QPushButton("Confirmar", dialog)
+        confirmar_button.clicked.connect(dialog.accept)
+        dialog_layout.addWidget(confirmar_button)
+
+        dialog.setLayout(dialog_layout)
+        dialog.exec_()
+
+    def set_humor_type(self, tipo_humor: str):
+        """
+        Define o tipo de humor com base na escolha do usuário no ComboBox.
+        """
+        tipo_humor = tipo_humor.lower()
+        if tipo_humor == 'sarcastico':
+            self.catelina_gpt.definir_tipo_humor('sarcastico')
+        elif tipo_humor == 'compreensivo':
+            self.catelina_gpt.definir_tipo_humor('compreensivo')
+        else:
+            self.catelina_gpt.definir_tipo_humor('padrao')
 
     def analyze_cost_prompt(self):
         # Catelina Lacet interage com humor para iniciar a análise de custos
