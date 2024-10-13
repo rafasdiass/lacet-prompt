@@ -1,4 +1,4 @@
-alabaster==0.7.16
+alabaster==1.0.0
 alembic==1.13.3
 altgraph @ file:///AppleInternal/Library/BuildRoots/bd680bd8-563b-11ef-bf16-8a553ba56670/Library/Caches/com.apple.xbs/Sources/python3/altgraph-0.17.2-py2.py3-none-any.whl
 annotated-types==0.7.0
