@@ -35,25 +35,19 @@ class UserPreferencesService:
             session.rollback()
             raise RuntimeError(f"Erro ao carregar ou criar o usuário padrão: {str(e)}")
 
-    def mudar_humor(self):
+    def set_humor(self, humor: str):
         """
-        Alterna entre os tipos de humor (padrão, sarcástico, compreensivo) e salva no banco de dados.
+        Define o humor do usuário e salva no banco de dados.
         """
-        humores = ['padrao', 'sarcastico', 'compreensivo']
-        proximo_humor = humores[(humores.index(self.usuario.preferencias_tom) + 1) % len(humores)]
-
-        # Atualizar preferências no banco de dados
         try:
-            self.usuario.preferencias_tom = proximo_humor
+            self.usuario.preferencias_tom = humor
             session.commit()
-            print(f"Humor alterado para: {proximo_humor}")
+            print(f"Humor alterado para: {humor}")
         except SQLAlchemyError as e:
             session.rollback()
             raise RuntimeError(f"Erro ao salvar as preferências de humor no banco de dados: {str(e)}")
 
-        return proximo_humor
-
-    def get_current_humor(self):
+    def get_humor_atual(self):
         """
         Retorna o humor atual do usuário.
         """

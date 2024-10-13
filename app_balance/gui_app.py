@@ -1,17 +1,26 @@
 from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QPushButton, QLabel, QFileDialog, QWidget, QLineEdit, QTextEdit, QHBoxLayout, QDialog, QComboBox, QDialogButtonBox
-from PyQt5.QtCore import Qt, QSize
+from PyQt5.QtCore import Qt, QSize  # Importando QSize corretamente
 from PyQt5.QtGui import QPixmap, QIcon
 import qtawesome
 from app_balance.services.gpt_service import GPTService
 from app_balance.services.file_processing_service import FileProcessingService
 from app_balance.services.user_preferences_service import UserPreferencesService
+from app_balance.models import Recebimento
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy import create_engine
+
+# Configuração do banco de dados
+DATABASE_URL = 'sqlite:///recebimentos.db'
+engine = create_engine(DATABASE_URL)
+Session = sessionmaker(bind=engine)
+session = Session()
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Catelina Lacet - Sua IA Financeira com Senso de Humor!")
         self.setGeometry(100, 100, 1000, 800)
-        self.setStyleSheet("background-color: #000000; color: #EDEDED;")
+        self.setStyleSheet("background-color: #000000; color: #EDEDED; font-family: 'Roboto', sans-serif;")
 
         # Inicializando serviços
         self.gpt_service = GPTService()
@@ -56,9 +65,9 @@ class MainWindow(QMainWindow):
         self.logo.setScaledContents(True)  # Mantém a qualidade ao redimensionar
         layout.addWidget(self.logo)
 
-        # Frase de boas-vindas
+        # Mensagem de boas-vindas
         self.welcome_message = QLabel(self.get_dynamic_welcome_message())
-        self.welcome_message.setStyleSheet("font-size: 24px; color: yellow;")
+        self.welcome_message.setStyleSheet("color: yellow; font-size: 24px; font-family: 'Roboto', sans-serif;")
         self.welcome_message.setAlignment(Qt.AlignCenter)
         layout.addWidget(self.welcome_message)
 
@@ -81,6 +90,18 @@ class MainWindow(QMainWindow):
             }
         """
 
+        button_style_disabled = """
+            QPushButton {
+                background-color: #D3D3D3;  /* Cor para botão desativado */
+                color: black;
+                font-size: 16px;
+                padding: 10px;
+                border-radius: 8px;
+                min-width: 250px;
+                margin-top: 20px;  /* Adicionando margem superior */
+            }
+        """
+
         # Botão de upload de arquivos (PDF, Excel, DOCX)
         self.upload_button = QPushButton("Enviar Arquivo")
         self.upload_button.setIcon(qtawesome.icon('fa.upload', color='black'))
@@ -91,14 +112,16 @@ class MainWindow(QMainWindow):
         # Botão para análise de custos
         self.analyze_cost_button = QPushButton("Análise de Custos")
         self.analyze_cost_button.setIcon(qtawesome.icon('fa.money', color='black'))
-        self.analyze_cost_button.setStyleSheet(button_style_enabled)
+        self.analyze_cost_button.setStyleSheet(button_style_disabled)
+        self.analyze_cost_button.setEnabled(False)
         self.analyze_cost_button.clicked.connect(self.analyze_costs)
         button_layout.addWidget(self.analyze_cost_button)
 
         # Botão para análise de investimentos
         self.analyze_investment_button = QPushButton("Análise de Investimentos")
         self.analyze_investment_button.setIcon(qtawesome.icon('fa.line-chart', color='black'))
-        self.analyze_investment_button.setStyleSheet(button_style_enabled)
+        self.analyze_investment_button.setStyleSheet(button_style_disabled)
+        self.analyze_investment_button.setEnabled(False)
         self.analyze_investment_button.clicked.connect(self.analyze_investments)
         button_layout.addWidget(self.analyze_investment_button)
 
@@ -113,7 +136,7 @@ class MainWindow(QMainWindow):
         footer_layout = QHBoxLayout()
         self.input_field = QLineEdit(self)
         self.input_field.setPlaceholderText("Digite sua pergunta para a Catelina Lacet...")
-        self.input_field.setStyleSheet("font-size: 16px; padding: 20px; background-color: #505050; color: white;")  # Campo de input com fundo cinza mais escuro
+        self.input_field.setStyleSheet("font-size: 16px; padding: 20px; background-color: #696969; color: white;")  # Campo de input maior e fundo cinza escuro
         self.input_field.setMinimumHeight(80)  # Aumenta o tamanho do campo de input
 
         # Botão de envio dentro do campo de input
@@ -171,36 +194,10 @@ class MainWindow(QMainWindow):
         dialog.exec_()
 
     def set_humor(self, humor: str, dialog: QDialog):
-        """Define o humor com base na escolha do usuário e atualiza a frase de boas-vindas."""
+        """Define o humor com base na escolha do usuário."""
         self.user_preferences_service.set_humor(humor.lower())
-        self.update_welcome_message()
+        self.welcome_message.setText(self.get_dynamic_welcome_message())  # Atualiza a mensagem de boas-vindas
         dialog.accept()
-
-    def update_welcome_message(self):
-        """Atualiza a mensagem de boas-vindas dinamicamente com base no humor atual."""
-        self.welcome_message.setText(self.get_dynamic_welcome_message())
-
-    def get_dynamic_welcome_message(self):
-        """Gera a mensagem de boas-vindas com base no humor atual."""
-        humor = self.user_preferences_service.get_current_humor()
-
-        if humor == 'sarcastico':
-            frases = [
-                "Bem-vinda, Catherine! Se o dinheiro fosse fácil, até eu ficaria rico.",
-                "Bem-vinda, Catherine! Vamos resolver esses problemas de finanças... de novo."
-            ]
-        elif humor == 'compreensivo':
-            frases = [
-                "Bem-vinda, Catherine! Respira fundo, o sucesso financeiro está logo ali.",
-                "Bem-vinda, Catherine! Juntos, vamos tornar essas finanças mais tranquilas."
-            ]
-        else:
-            frases = [
-                "Bem-vinda, Catherine! Show me the money! Vamos trabalhar!",
-                "Bem-vinda, Catherine! É hora de fazer o dinheiro trabalhar para você!"
-            ]
-
-        return f"Bem-vinda, Catherine!\n{frases[0]}"
 
     def upload_file(self):
         """Permite o upload de arquivos PDF, Excel ou DOCX para processamento."""
@@ -214,21 +211,55 @@ class MainWindow(QMainWindow):
                     file_data = f.read()
                 resposta_gpt = self.file_service.processar_arquivo(file_data, file_type)
                 self.result_display.setText(f"Arquivo processado com sucesso:\n{resposta_gpt}")
+                # Habilita os botões após o envio do arquivo
+                self.analyze_cost_button.setEnabled(True)
+                self.analyze_investment_button.setEnabled(True)
+                self.analyze_cost_button.setStyleSheet(button_style_enabled)  # Aplicar estilo ativo
+                self.analyze_investment_button.setStyleSheet(button_style_enabled)  # Aplicar estilo ativo
             except Exception as e:
                 self.result_display.setText(f"Erro ao processar o arquivo: {str(e)}")
 
     def analyze_costs(self):
-        """Simula a análise de custos e exibe o resultado."""
-        custos = {
-            'total_custos': 10000,
-            'valor_hora': 120.0,
-            'categorias_custos': {'Serviços': 4000, 'Infraestrutura': 2000, 'Funcionários': 4000}
-        }
-        receita_projetada = 15000
-        resposta = self.gpt_service.analyze_costs(custos, receita_projetada)
-        self.result_display.setText(resposta)
+        """Realiza a análise de custos com base nos dados reais carregados e exibe o resultado."""
+        try:
+            recebimentos = session.query(Recebimento).all()
+            if not recebimentos:
+                self.result_display.setText("Nenhum dado de custos foi encontrado. Por favor, envie os arquivos primeiro.")
+                return
+
+            total_custos = sum([r.valor for r in recebimentos])
+            valor_hora = total_custos / 160
+            categorias_custos = {
+                'Serviços': total_custos * 0.4,
+                'Infraestrutura': total_custos * 0.3,
+                'Funcionários': total_custos * 0.3
+            }
+
+            receita_projetada = total_custos * 1.5
+
+            resposta = self.gpt_service.analyze_costs(
+                {
+                    'total_custos': total_custos,
+                    'valor_hora': valor_hora,
+                    'categorias_custos': categorias_custos
+                },
+                receita_projetada
+            )
+            self.result_display.setText(resposta)
+        except Exception as e:
+            self.result_display.setText(f"Erro ao realizar análise de custos: {str(e)}")
 
     def analyze_investments(self):
-        """Simula a análise de investimentos e exibe o resultado."""
+        """Realiza a análise de investimentos e exibe o resultado."""
         resposta = self.gpt_service.analyze_investments()
         self.result_display.setText(resposta)
+
+    def get_dynamic_welcome_message(self):
+        """Retorna uma mensagem de boas-vindas dinâmica com base no humor atual."""
+        humor = self.user_preferences_service.get_humor_atual()
+        if humor == 'sarcastico':
+            return "Bem-vinda, Catherine! Prepare-se para aprender mais sobre finanças... se é que você entende algo disso."
+        elif humor == 'compreensivo':
+            return "Bem-vinda, Catherine! Vamos juntos conquistar sua estabilidade financeira com calma e paciência."
+        else:
+            return "Bem-vinda, Catherine! Vamos começar a jornada para dominar suas finanças!"
