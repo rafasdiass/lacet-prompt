@@ -53,7 +53,7 @@ class UserPreferencesService:
 
         return proximo_humor
 
-    def get_humor_atual(self):
+    def get_current_humor(self):
         """
         Retorna o humor atual do usuário.
         """
