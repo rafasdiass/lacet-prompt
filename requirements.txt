@@ -175,7 +175,7 @@ typer==0.12.5
 types-python-dateutil==2.9.0.20241003
 typing_extensions==4.12.2
 tzdata==2024.2
-urllib3==1.26.20
+urllib3==2.2.3
 uvicorn==0.19.0
 virtualenv==20.26.6
 visions==0.7.6
