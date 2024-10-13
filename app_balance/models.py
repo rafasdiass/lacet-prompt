@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# app_balance/models.py
 from sqlalchemy import Column, Integer, String, Float, DateTime, Date
 from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime
@@ -28,11 +28,8 @@ class Prompt(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     conteudo = Column(String, nullable=False)  # Conteúdo do prompt
+    resposta = Column(String, nullable=True)  # Resposta do GPT-4
     data = Column(DateTime, default=datetime.now, nullable=False)  # Data do envio do prompt
 
     def __repr__(self):
         return f"<Prompt(id={self.id}, conteudo={self.conteudo}, data={self.data})>"
-
-# Para criar as tabelas no banco de dados, basta rodar o comando apropriado
-# session = Session()
-# Base.metadata.create_all(engine)

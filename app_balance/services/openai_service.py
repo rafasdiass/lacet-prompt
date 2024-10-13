@@ -1,3 +1,4 @@
+# app_balance/services/openai_service.py
 import openai
 from environs import Env
 
@@ -15,14 +16,14 @@ else:
 
 def analyze_data(prompt: str) -> str:
     """
-    Tenta interagir com a API do OpenAI para analisar dados com base no prompt fornecido
-    utilizando a nova interface da API ChatCompletion.
+    Interage com a API do OpenAI para analisar dados com base no prompt fornecido
+    utilizando a interface da API ChatCompletion.
     Se falhar, retorna uma resposta simulada.
     """
     if openai_key:
         try:
             response = openai.ChatCompletion.create(
-                model="gpt-4",  # Pode ser "gpt-4" ou "gpt-3.5-turbo" dependendo do setup
+                model="gpt-4",  # ou "gpt-3.5-turbo"
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=500,
                 temperature=0.7,
@@ -40,12 +41,3 @@ def simulate_analyze_data(prompt: str) -> str:
     Retorna uma análise simulada sem conexão com OpenAI.
     """
     return f"Simulação GPT-4: Baseado no prompt '{prompt}', aqui está a análise simulada dos dados financeiros."
-
-
-# Função de exemplo para teste direto
-if __name__ == "__main__":
-    # Exemplo de prompt que pode ser passado para a função
-    example_prompt = "Faça uma análise financeira dos últimos três meses, considerando que os custos foram de R$10.000 e a receita foi de R$15.000."
-    
-    # Teste da função analyze_data
-    print(analyze_data(example_prompt))

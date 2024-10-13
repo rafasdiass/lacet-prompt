@@ -37,7 +37,7 @@ pip install -r requirements.txt
 3. Execute o aplicativo:
 
 ```bash
-python3 app_balance/gui_app.py
+python3 main_app.py    
 ```
 
 ---

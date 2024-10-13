@@ -1,34 +1,30 @@
-import sys
+# app_balance/gui_app.py
 import os
+import sys
 import numpy as np  # Usado para cálculos matemáticos
 import pandas as pd  # Usado para processar arquivos Excel
 import matplotlib.pyplot as plt  # Para exibir gráficos de receitas
 import qtawesome  # Para ícones no aplicativo
 import seaborn as sns  # Para exibir gráficos de receitas
 import plotly.express as px  # Alternativa para gráficos interativos
-from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QPushButton, QLabel, QFileDialog, QWidget, QMessageBox, QLineEdit, QTextEdit
+from PyQt5.QtWidgets import (
+    QMainWindow, QVBoxLayout, QPushButton, QLabel, QFileDialog,
+    QWidget, QMessageBox, QLineEdit, QTextEdit
+)
 from PyQt5.QtChart import QChart, QChartView, QPieSeries
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPainter, QPixmap
-from scipy import stats  # Usado para análise estatística de dados
 from environs import Env  # Para carregar a chave do OpenAI a partir do .env
-from typing import Dict
 from datetime import datetime
-from PyQt5.QtWidgets import QApplication
+from typing import Dict
 
-# Ajustar o caminho do projeto (adicionando o diretório raiz do projeto ao sys.path)
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+# Imports relativos dentro do pacote
+from .prompts import PromptService
+from .services.openai_service import analyze_data
+from .database import session
+from .models import Prompt
+from .services.gpt_module import CatelinaLacetGPT
 
-# Carregar variáveis de ambiente
-env = Env()
-env.read_env()
-
-# Agora que garantimos que o caminho do módulo está correto, podemos fazer a importação
-from app_balance.prompts import PromptService
-from app_balance.services.openai_service import analyze_data
-from app_balance.database import session
-from app_balance.models import Prompt
-from app_balance.services.gpt_module import CatelinaLacetGPT
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -135,40 +131,48 @@ class MainWindow(QMainWindow):
     def analyze_cost_prompt(self):
         # Catelina Lacet interage com humor para iniciar a análise de custos
         response = self.catelina_gpt.get_financial_analysis(
-            custos={'total_custos': 10000}, receita_projetada=15000, valor_hora=120.0,
-            categorias_custos={'Serviços': 4000, 'Infraestrutura': 2000, 'Funcionários': 4000})
+            custos={'total_custos': 10000},
+            receita_projetada=15000,
+            valor_hora=120.0,
+            categorias_custos={'Serviços': 4000, 'Infraestrutura': 2000, 'Funcionários': 4000}
+        )
         self.result_display.setText(response)
         QMessageBox.information(self, "Análise de Custos", response)
 
     def analyze_investment_prompt(self):
         # Catelina Lacet traz insights bem-humorados para análise de investimentos
-        self.result_display.setText(self.catelina_gpt.generate_dynamic_references())
-        QMessageBox.information(self, "Análise de Investimentos", self.catelina_gpt.generate_dynamic_references())
+        response = self.catelina_gpt.generate_dynamic_references()
+        self.result_display.setText(response)
+        QMessageBox.information(self, "Análise de Investimentos", response)
 
     def upload_file(self):
         options = QFileDialog.Options()
-        files, _ = QFileDialog.getOpenFileNames(self, "Enviar Arquivos", os.getenv('HOME'),
-                                                "All Files (*);;Excel Files (*.xlsx);;PDF Files (*.pdf);;DOCX Files (*.docx)", 
-                                                options=options)
+        files, _ = QFileDialog.getOpenFileNames(
+            self,
+            "Enviar Arquivos",
+            os.getenv('HOME'),
+            "All Files (*);;Excel Files (*.xlsx);;CSV Files (*.csv)",
+            options=options
+        )
         if files:
             for file in files:
                 file_type = file.split('.')[-1].lower()
                 try:
-                    with open(file, 'rb') as f:
-                        file_content = f.read()
-                    result = self.prompt_service.processar_arquivo(file_content, file_type)
-                    
-                    # Priorizar GPT-4 para análise
-                    self.real_cost_data = 10000  # Exemplo de dados que poderiam embasar a resposta
-                    self.real_revenue_data = 15000  # Exemplo de dados que poderiam embasar a resposta
+                    # Processar o arquivo
+                    result = self.prompt_service.processar_arquivo(file, file_type)
+
+                    # Obter dados reais dos custos e receitas a partir do arquivo
+                    self.real_cost_data = result['total_custos']
+                    self.real_revenue_data = result['receita_projetada']
+
                     prompt = self.prompt_service.gerar_prompt_analise(
                         custos={'total_custos': self.real_cost_data},
                         valor_hora=120.0,
-                        categorias_custos={'Serviços': 4000, 'Infraestrutura': 2000, 'Funcionários': 4000},
+                        categorias_custos=result['categorias_custos'],
                         margem_lucro_desejada=20.0,
                         receita_projetada=self.real_revenue_data
                     )
-                    
+
                     # Obter análise prioritária do GPT-4
                     response = analyze_data(prompt)
                     self.result_display.setText(response)
@@ -246,10 +250,3 @@ class MainWindow(QMainWindow):
 
         except ValueError:
             self.result_display.setText("Por favor, insira valores válidos para os gráficos.")
-
-
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    window = MainWindow()
-    window.show()
-    sys.exit(app.exec_())

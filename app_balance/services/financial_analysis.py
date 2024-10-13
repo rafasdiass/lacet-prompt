@@ -1,3 +1,4 @@
+# app_balance/services/financial_analysis.py
 from typing import Dict
 
 class FinancialAnalysisService:
@@ -25,7 +26,7 @@ class FinancialAnalysisService:
         margem_lucro_real = (lucro_estimado / receita_projetada) * 100 if receita_projetada > 0 else 0
 
         # 2. Margem de Contribuição (desconsidera custos fixos, focando em custos variáveis)
-        custos_variaveis = sum([valor for categoria, valor in categorias_custos.items() if categoria != 'fixos'])
+        custos_variaveis = sum([valor for categoria, valor in categorias_custos.items() if categoria.lower() != 'fixos'])
         margem_contribuicao = receita_projetada - custos_variaveis
         margem_contribuicao_percentual = (margem_contribuicao / receita_projetada) * 100 if receita_projetada > 0 else 0
 
