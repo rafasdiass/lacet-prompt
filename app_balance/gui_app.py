@@ -25,7 +25,6 @@ from .database import session
 from .models import Prompt
 from .services.gpt_module import CatelinaLacetGPT
 
-
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
