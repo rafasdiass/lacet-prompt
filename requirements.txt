@@ -52,7 +52,7 @@ Flask-Static-Digest==0.4.1
 Flask-WTF==1.2.1
 fonttools==4.54.1
 future @ file:///AppleInternal/Library/BuildRoots/bd680bd8-563b-11ef-bf16-8a553ba56670/Library/Caches/com.apple.xbs/Sources/python3/future-0.18.2-py3-none-any.whl
-gevent==24.2.1
+gevent==24.10.2
 greenlet==3.1.1
 gunicorn==23.0.0
 h11==0.14.0
