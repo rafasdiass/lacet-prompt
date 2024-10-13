@@ -1,6 +1,0 @@
-[run]
-source = app_balance
-omit = 
-    tests/*
-    autoapp.py
-
