@@ -12,6 +12,7 @@ if openai_key:
 else:
     raise EnvironmentError("A chave da API do OpenAI não está definida. Verifique o arquivo .env")
 
+
 def analyze_data(prompt: str) -> str:
     """
     Tenta interagir com a API do OpenAI para analisar dados com base no prompt fornecido
@@ -21,7 +22,7 @@ def analyze_data(prompt: str) -> str:
     if openai_key:
         try:
             response = openai.ChatCompletion.create(
-                model="gpt-4",  # Pode ser "gpt-4" ou "gpt-3.5-turbo" dependendo da necessidade
+                model="gpt-4",  # Pode ser "gpt-4" ou "gpt-3.5-turbo" dependendo do setup
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=500,
                 temperature=0.7,
@@ -33,8 +34,18 @@ def analyze_data(prompt: str) -> str:
     else:
         return simulate_analyze_data(prompt)
 
+
 def simulate_analyze_data(prompt: str) -> str:
     """
     Retorna uma análise simulada sem conexão com OpenAI.
     """
     return f"Simulação GPT-4: Baseado no prompt '{prompt}', aqui está a análise simulada dos dados financeiros."
+
+
+# Função de exemplo para teste direto
+if __name__ == "__main__":
+    # Exemplo de prompt que pode ser passado para a função
+    example_prompt = "Faça uma análise financeira dos últimos três meses, considerando que os custos foram de R$10.000 e a receita foi de R$15.000."
+    
+    # Teste da função analyze_data
+    print(analyze_data(example_prompt))
