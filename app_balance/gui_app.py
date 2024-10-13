@@ -1,6 +1,6 @@
-from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QPushButton, QLabel, QFileDialog, QWidget, QLineEdit, QTextEdit
+from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QPushButton, QLabel, QFileDialog, QWidget, QLineEdit, QTextEdit, QHBoxLayout
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QPixmap
+from PyQt5.QtGui import QPixmap, QIcon
 import qtawesome
 from app_balance.services.gpt_service import GPTService
 from app_balance.services.file_processing_service import FileProcessingService
@@ -33,31 +33,20 @@ class MainWindow(QMainWindow):
         self.logo.setScaledContents(True)  # Mantém a qualidade ao redimensionar
         layout.addWidget(self.logo)
 
-        # Campo de input para interação com a IA
-        self.input_field = QLineEdit(self)
-        self.input_field.setPlaceholderText("Digite sua pergunta para a Catelina Lacet...")
-        layout.addWidget(self.input_field)
-
         # Configuração dos botões com estilos corrigidos
         button_style = """
             QPushButton {
-                background-color: #F8F4E3;
+                background-color: #E6E6FA;  /* Cor pastel */
                 color: black;
                 font-size: 16px;
                 padding: 10px;
                 border-radius: 8px;
-                max-width: 300px;  /* Limita a largura dos botões */
+                min-width: 300px;  /* Todos os botões têm a mesma largura */
             }
             QPushButton:hover {
-                background-color: #E0E0E0;  /* Cor ao passar o mouse */
+                background-color: #D8BFD8;  /* Hover em uma cor pastel mais escura */
             }
         """
-
-        # Botão de envio de pergunta ao GPT-4
-        self.gpt_button = QPushButton("Enviar Pergunta")
-        self.gpt_button.setStyleSheet(button_style)
-        self.gpt_button.clicked.connect(self.enviar_pergunta)
-        layout.addWidget(self.gpt_button, alignment=Qt.AlignCenter)
 
         # Botão de mudar o humor
         self.mudar_humor_button = QPushButton("Humor")
@@ -84,6 +73,35 @@ class MainWindow(QMainWindow):
         self.result_display = QTextEdit(self)
         self.result_display.setReadOnly(True)
         layout.addWidget(self.result_display)
+
+        # Campo de input no rodapé com ícone de envio
+        footer_layout = QHBoxLayout()
+        self.input_field = QLineEdit(self)
+        self.input_field.setPlaceholderText("Digite sua pergunta para a Catelina Lacet...")
+        self.input_field.setStyleSheet("font-size: 16px; padding: 10px;")
+        self.input_field.setMinimumHeight(50)
+
+        # Botão de envio dentro do campo de input
+        send_button = QPushButton()
+        send_button.setIcon(QIcon(qtawesome.icon('fa.send', color='black')))
+        send_button.setStyleSheet("""
+            QPushButton {
+                background-color: #E6E6FA;
+                border-radius: 8px;
+                padding: 10px;
+                min-width: 50px;
+                min-height: 50px;
+            }
+            QPushButton:hover {
+                background-color: #D8BFD8;
+            }
+        """)
+        send_button.clicked.connect(self.enviar_pergunta)
+
+        # Adiciona o campo de input e o botão de envio no rodapé
+        footer_layout.addWidget(self.input_field)
+        footer_layout.addWidget(send_button)
+        layout.addLayout(footer_layout)
 
         central_widget = QWidget()
         central_widget.setLayout(layout)
