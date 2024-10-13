@@ -18,6 +18,10 @@ class MainWindow(QMainWindow):
         self.file_service = FileProcessingService()
         self.user_preferences_service = UserPreferencesService()
 
+        # Inicializando variáveis para armazenar dados
+        self.custos = None
+        self.receita_projetada = None
+
         # Inicializando a interface de usuário
         self.setup_ui()
 
@@ -46,6 +50,12 @@ class MainWindow(QMainWindow):
         self.mudar_humor_button.clicked.connect(self.abrir_modal_humor)
         top_layout.addWidget(self.mudar_humor_button, alignment=Qt.AlignRight)
         layout.addLayout(top_layout)  # Adiciona o layout de topo ao layout principal
+
+        # Mensagem de boas-vindas
+        self.welcome_message = QLabel("Bem-vindo, Cath Dean! Show-me the money! Vamos começar a trabalhar...")
+        self.welcome_message.setAlignment(Qt.AlignCenter)
+        self.welcome_message.setStyleSheet("font-size: 18px; font-weight: bold; color: #FFD700; margin-bottom: 20px;")
+        layout.addWidget(self.welcome_message)
 
         # Adicionando o logotipo
         self.logo = QLabel()
@@ -82,17 +92,19 @@ class MainWindow(QMainWindow):
         self.upload_button.clicked.connect(self.upload_file)
         button_layout.addWidget(self.upload_button)
 
-        # Botão para análise de custos (simulação)
+        # Botão para análise de custos (inicialmente desabilitado)
         self.analyze_cost_button = QPushButton("Análise de Custos")
         self.analyze_cost_button.setIcon(qtawesome.icon('fa.money', color='black'))
         self.analyze_cost_button.setStyleSheet(button_style)
+        self.analyze_cost_button.setEnabled(False)  # Desabilitado até que os dados estejam disponíveis
         self.analyze_cost_button.clicked.connect(self.analyze_costs)
         button_layout.addWidget(self.analyze_cost_button)
 
-        # Botão para análise de investimentos
+        # Botão para análise de investimentos (também desabilitado inicialmente)
         self.analyze_investment_button = QPushButton("Análise de Investimentos")
         self.analyze_investment_button.setIcon(qtawesome.icon('fa.line-chart', color='black'))
         self.analyze_investment_button.setStyleSheet(button_style)
+        self.analyze_investment_button.setEnabled(False)  # Desabilitado até que os dados estejam disponíveis
         self.analyze_investment_button.clicked.connect(self.analyze_investments)
         button_layout.addWidget(self.analyze_investment_button)
 
@@ -180,23 +192,27 @@ class MainWindow(QMainWindow):
                 file_type = file_path.split('.')[-1].lower()  # Detectar o tipo de arquivo
                 with open(file_path, 'rb') as f:
                     file_data = f.read()
-                resposta_gpt = self.file_service.processar_arquivo(file_data, file_type)
-                self.result_display.setText(f"Arquivo processado com sucesso:\n{resposta_gpt}")
+                
+                # Processa o arquivo e armazena os dados de custos e receita
+                resultado = self.file_service.processar_arquivo(file_data, file_type)
+                self.custos = resultado['categorias_custos']
+                self.receita_projetada = resultado['receita_projetada']
+
+                self.result_display.setText(f"Arquivo processado com sucesso:\n{resultado}")
+                
+                # Habilitar botões de análise
+                self.analyze_cost_button.setEnabled(True)
+                self.analyze_investment_button.setEnabled(True)
             except Exception as e:
                 self.result_display.setText(f"Erro ao processar o arquivo: {str(e)}")
 
     def analyze_costs(self):
-        """Simula a análise de custos e exibe o resultado."""
-        custos = {
-            'total_custos': 10000,
-            'valor_hora': 120.0,
-            'categorias_custos': {'Serviços': 4000, 'Infraestrutura': 2000, 'Funcionários': 4000}
-        }
-        receita_projetada = 15000
-        resposta = self.gpt_service.analyze_costs(custos, receita_projetada)
-        self.result_display.setText(resposta)
+        """Analisa os dados reais de custos e exibe o resultado."""
+        if self.custos and self.receita_projetada:
+            resposta = self.gpt_service.analyze_costs(self.custos, self.receita_projetada)
+            self.result_display.setText(resposta)
 
     def analyze_investments(self):
-        """Simula a análise de investimentos e exibe o resultado."""
+        """Analisa os dados reais de investimentos e exibe o resultado."""
         resposta = self.gpt_service.analyze_investments()
         self.result_display.setText(resposta)
