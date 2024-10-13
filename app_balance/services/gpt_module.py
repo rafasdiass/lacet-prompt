@@ -1,7 +1,8 @@
 import openai
 from environs import Env
 from typing import Dict
-from financial_analysis import FinancialAnalysisService
+from .financial_analysis import FinancialAnalysisService
+
 
 # Carregar variáveis de ambiente para a chave da API do OpenAI
 env = Env()

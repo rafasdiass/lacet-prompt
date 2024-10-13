@@ -16,7 +16,6 @@ from typing import Dict
 from datetime import datetime
 from PyQt5.QtWidgets import QApplication
 
-
 # Ajustar o caminho do projeto (adicionando o diretório raiz do projeto ao sys.path)
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
@@ -29,11 +28,12 @@ from app_balance.prompts import PromptService
 from app_balance.services.openai_service import analyze_data
 from app_balance.database import session
 from app_balance.models import Prompt
+from app_balance.services.gpt_module import CatelinaLacetGPT
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("App de Análise de Custos e GPT-4")
+        self.setWindowTitle("Catelina Lacet - Sua IA Financeira com Senso de Humor!")
         self.setGeometry(100, 100, 1000, 800)
         self.setStyleSheet("""
             background-color: #000000;  /* Fundo preto */
@@ -41,6 +41,7 @@ class MainWindow(QMainWindow):
         """)
 
         self.prompt_service = PromptService()
+        self.catelina_gpt = CatelinaLacetGPT()
 
         # Inicializa as variáveis de dados reais
         self.real_cost_data = None
@@ -58,8 +59,8 @@ class MainWindow(QMainWindow):
         self.logo.setScaledContents(True)
         layout.addWidget(self.logo)
 
-        # Label principal
-        self.label = QLabel("Bem-vinda, Catharina! O que você deseja fazer hoje?")
+        # Mensagem de boas-vindas dinâmica, gerada pela Catelina Lacet
+        self.label = QLabel(self.catelina_gpt.generate_dynamic_references())
         self.label.setAlignment(Qt.AlignCenter)
         self.label.setStyleSheet("""
             font-size: 24px; 
@@ -105,12 +106,12 @@ class MainWindow(QMainWindow):
 
         # Campo de input para comunicação com o GPT-4
         self.input_field = QLineEdit(self)
-        self.input_field.setPlaceholderText("Digite sua pergunta para o GPT-4 aqui...")
+        self.input_field.setPlaceholderText("Digite sua pergunta para a Catelina Lacet...")
         self.input_field.setStyleSheet("padding: 10px; font-size: 16px;")
         layout.addWidget(self.input_field)
 
         # Botão para enviar input para o GPT-4
-        self.gpt_button = QPushButton("Enviar Pergunta ao GPT-4")
+        self.gpt_button = QPushButton("Enviar Pergunta para Catelina Lacet")
         self.gpt_button.setStyleSheet("""
             background-color: #F8F4E3;
             color: black;
@@ -132,12 +133,17 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(central_widget)
 
     def analyze_cost_prompt(self):
-        self.result_display.setText("Vamos começar a análise de custos. Envie um arquivo ou prossiga com os dados atuais.")
-        QMessageBox.information(self, "Análise de Custos", "Vamos começar a análise de custos. Envie um arquivo ou prossiga com os dados atuais.")
+        # Catelina Lacet interage com humor para iniciar a análise de custos
+        response = self.catelina_gpt.get_financial_analysis(
+            custos={'total_custos': 10000}, receita_projetada=15000, valor_hora=120.0,
+            categorias_custos={'Serviços': 4000, 'Infraestrutura': 2000, 'Funcionários': 4000})
+        self.result_display.setText(response)
+        QMessageBox.information(self, "Análise de Custos", response)
 
     def analyze_investment_prompt(self):
-        self.result_display.setText("Vamos iniciar a análise de investimentos. Envie um arquivo ou prossiga com os dados atuais.")
-        QMessageBox.information(self, "Análise de Investimentos", "Vamos iniciar a análise de investimentos. Envie um arquivo ou prossiga com os dados atuais.")
+        # Catelina Lacet traz insights bem-humorados para análise de investimentos
+        self.result_display.setText(self.catelina_gpt.generate_dynamic_references())
+        QMessageBox.information(self, "Análise de Investimentos", self.catelina_gpt.generate_dynamic_references())
 
     def upload_file(self):
         options = QFileDialog.Options()
