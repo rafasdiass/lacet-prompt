@@ -1,134 +1,147 @@
-# -*- coding: utf-8 -*-
 import sys
 import os
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
-import plotly.express as px
-from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QPushButton, QLabel, QFileDialog, QWidget, QMessageBox
+import numpy as np  # Usado para cálculos matemáticos
+import pandas as pd  # Usado para processar arquivos Excel
+import matplotlib.pyplot as plt  # Para exibir gráficos de receitas
+import qtawesome  # Para ícones no aplicativo
+import seaborn as sns  # Para exibir gráficos de receitas
+import plotly.express as px  # Alternativa para gráficos interativos
+from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QPushButton, QLabel, QFileDialog, QWidget, QMessageBox, QLineEdit, QTextEdit
 from PyQt5.QtChart import QChart, QChartView, QPieSeries
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPainter, QPixmap
-from scipy import stats
-from statsmodels.tsa.arima.model import ARIMA
-import qtawesome as qta  # Para adicionar ícones FontAwesome
+from scipy import stats  # Usado para análise estatística de dados
 from environs import Env  # Para carregar a chave do OpenAI a partir do .env
+from typing import Dict
+from datetime import datetime
+from PyQt5.QtWidgets import QApplication
+
+
+# Ajustar o caminho do projeto (adicionando o diretório raiz do projeto ao sys.path)
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Carregar variáveis de ambiente
 env = Env()
 env.read_env()
 
-# Adicionar o diretório raiz ao sys.path para encontrar os módulos corretamente
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
+# Agora que garantimos que o caminho do módulo está correto, podemos fazer a importação
 from app_balance.prompts import PromptService
-from app_balance.services.openai_service import analyze_data  # Integração com OpenAI
+from app_balance.services.openai_service import analyze_data
+from app_balance.database import session
+from app_balance.models import Prompt
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("App de Análise de Custos")
+        self.setWindowTitle("App de Análise de Custos e GPT-4")
         self.setGeometry(100, 100, 1000, 800)
         self.setStyleSheet("""
             background-color: #000000;  /* Fundo preto */
             color: #EDEDED;  /* Texto claro */
         """)
 
-        # Inicializar o serviço de prompts
         self.prompt_service = PromptService()
 
-        # Dados reais (inicialmente vazios até o envio de arquivos)
+        # Inicializa as variáveis de dados reais
         self.real_cost_data = None
         self.real_revenue_data = None
 
         # Layout principal
         layout = QVBoxLayout()
 
-        # Adicionar logo no topo com tamanho controlado
+        # Logo
         self.logo = QLabel()
         pixmap = QPixmap('assets/LOGO-BRANCA.PNG')
         self.logo.setPixmap(pixmap)
         self.logo.setAlignment(Qt.AlignCenter)
-        self.logo.setFixedSize(200, 100)  # Define o tamanho da logo (200x100)
-        self.logo.setScaledContents(True)  # Ajusta a imagem ao tamanho especificado sem perder a qualidade
+        self.logo.setFixedSize(200, 100)
+        self.logo.setScaledContents(True)
         layout.addWidget(self.logo)
 
-        # Mensagem inicial com opções interativas
+        # Label principal
         self.label = QLabel("Bem-vinda, Catharina! O que você deseja fazer hoje?")
         self.label.setAlignment(Qt.AlignCenter)
         self.label.setStyleSheet("""
             font-size: 24px; 
             font-weight: bold; 
-            color: #F8F4E3;  /* Tom pastel claro */
+            color: #F8F4E3;
         """)
         layout.addWidget(self.label)
 
-        # Botões interativos para análise de custos, investimentos, etc.
+        # Botões
         self.analyze_cost_button = QPushButton(" Análise de Custos")
-        self.analyze_cost_button.setIcon(qta.icon('fa.money', color='black'))  # Ícone de análise de custos
+        self.analyze_cost_button.setIcon(qtawesome.icon('fa.money', color='black'))
         self.analyze_cost_button.setStyleSheet("""
-            background-color: #F8F4E3;  /* Cor bege */
+            background-color: #F8F4E3;
             color: black;
             font-size: 16px;
             padding: 10px;
         """)
-        self.analyze_cost_button.setCursor(Qt.PointingHandCursor)
         self.analyze_cost_button.clicked.connect(self.analyze_cost_prompt)
         layout.addWidget(self.analyze_cost_button)
 
         self.analyze_investment_button = QPushButton(" Análise de Investimentos")
-        self.analyze_investment_button.setIcon(qta.icon('fa.line-chart', color='black'))  # Ícone de análise de investimentos
+        self.analyze_investment_button.setIcon(qtawesome.icon('fa.line-chart', color='black'))
         self.analyze_investment_button.setStyleSheet("""
-            background-color: #F8F4E3;  /* Cor bege */
+            background-color: #F8F4E3;
             color: black;
             font-size: 16px;
             padding: 10px;
         """)
-        self.analyze_investment_button.setCursor(Qt.PointingHandCursor)
         self.analyze_investment_button.clicked.connect(self.analyze_investment_prompt)
         layout.addWidget(self.analyze_investment_button)
 
-        # Botão para enviar arquivos (Excel, PDF, DOCX) com ícone
+        # Botão de Upload de Arquivos
         self.upload_button = QPushButton(" Enviar Arquivos")
-        self.upload_button.setIcon(qta.icon('fa.upload', color='black'))  # Ícone de upload
+        self.upload_button.setIcon(qtawesome.icon('fa.upload', color='black'))
         self.upload_button.setStyleSheet("""
-            background-color: #F8F4E3;  /* Cor bege */
+            background-color: #F8F4E3;
             color: black;
             font-size: 16px;
             padding: 10px;
         """)
-        self.upload_button.setCursor(Qt.PointingHandCursor)
         self.upload_button.clicked.connect(self.upload_file)
         layout.addWidget(self.upload_button)
 
-        # Campo de resultados
-        self.result_label = QLabel("")
-        self.result_label.setAlignment(Qt.AlignCenter)
-        layout.addWidget(self.result_label)
+        # Campo de input para comunicação com o GPT-4
+        self.input_field = QLineEdit(self)
+        self.input_field.setPlaceholderText("Digite sua pergunta para o GPT-4 aqui...")
+        self.input_field.setStyleSheet("padding: 10px; font-size: 16px;")
+        layout.addWidget(self.input_field)
+
+        # Botão para enviar input para o GPT-4
+        self.gpt_button = QPushButton("Enviar Pergunta ao GPT-4")
+        self.gpt_button.setStyleSheet("""
+            background-color: #F8F4E3;
+            color: black;
+            font-size: 16px;
+            padding: 10px;
+        """)
+        self.gpt_button.clicked.connect(self.enviar_gpt)
+        layout.addWidget(self.gpt_button)
+
+        # Campo de exibição dos resultados
+        self.result_display = QTextEdit(self)
+        self.result_display.setReadOnly(True)
+        self.result_display.setStyleSheet("padding: 10px; font-size: 14px;")
+        layout.addWidget(self.result_display)
 
         # Configura o widget central
         central_widget = QWidget()
         central_widget.setLayout(layout)
         self.setCentralWidget(central_widget)
 
-        # Chamada para exibir os gráficos automaticamente
-        self.show_graphs()
-
     def analyze_cost_prompt(self):
-        """Prompt para iniciar a análise de custos"""
-        self.result_label.setText("Vamos começar a análise de custos. Envie um arquivo ou prossiga com os dados atuais.")
+        self.result_display.setText("Vamos começar a análise de custos. Envie um arquivo ou prossiga com os dados atuais.")
         QMessageBox.information(self, "Análise de Custos", "Vamos começar a análise de custos. Envie um arquivo ou prossiga com os dados atuais.")
 
     def analyze_investment_prompt(self):
-        """Prompt para iniciar a análise de investimentos"""
-        self.result_label.setText("Vamos iniciar a análise de investimentos. Envie um arquivo ou prossiga com os dados atuais.")
+        self.result_display.setText("Vamos iniciar a análise de investimentos. Envie um arquivo ou prossiga com os dados atuais.")
         QMessageBox.information(self, "Análise de Investimentos", "Vamos iniciar a análise de investimentos. Envie um arquivo ou prossiga com os dados atuais.")
 
     def upload_file(self):
-        """Função para enviar arquivos e gerar análise de custos."""
         options = QFileDialog.Options()
-        files, _ = QFileDialog.getOpenFileNames(self, "Enviar Arquivos", "", 
+        files, _ = QFileDialog.getOpenFileNames(self, "Enviar Arquivos", os.getenv('HOME'),
                                                 "All Files (*);;Excel Files (*.xlsx);;PDF Files (*.pdf);;DOCX Files (*.docx)", 
                                                 options=options)
         if files:
@@ -138,27 +151,59 @@ class MainWindow(QMainWindow):
                     with open(file, 'rb') as f:
                         file_content = f.read()
                     result = self.prompt_service.processar_arquivo(file_content, file_type)
-                    # Atualizar com dados reais
-                    self.result_label.setText(result)
+                    
+                    # Priorizar GPT-4 para análise
+                    self.real_cost_data = 10000  # Exemplo de dados que poderiam embasar a resposta
+                    self.real_revenue_data = 15000  # Exemplo de dados que poderiam embasar a resposta
+                    prompt = self.prompt_service.gerar_prompt_analise(
+                        custos={'total_custos': self.real_cost_data},
+                        valor_hora=120.0,
+                        categorias_custos={'Serviços': 4000, 'Infraestrutura': 2000, 'Funcionários': 4000},
+                        margem_lucro_desejada=20.0,
+                        receita_projetada=self.real_revenue_data
+                    )
+                    
+                    # Obter análise prioritária do GPT-4
+                    response = analyze_data(prompt)
+                    self.result_display.setText(response)
 
-                    # Exemplo: atualiza os dados reais de receita e custos
-                    self.real_cost_data = 10000  # Substitua pelo valor real extraído
-                    self.real_revenue_data = 15000  # Substitua pelo valor real extraído
-
-                    # Recalcular e exibir gráficos com dados reais
+                    # Exibir gráficos como suporte à análise do GPT-4
                     self.show_graphs()
 
                 except Exception as e:
-                    self.result_label.setText(f"Erro ao processar o arquivo {file}: {str(e)}")
+                    self.result_display.setText(f"Erro ao processar o arquivo {file}: {str(e)}")
+
+    def enviar_gpt(self):
+        """Envia uma pergunta diretamente ao GPT-4 e salva no banco de dados."""
+        prompt_text = self.input_field.text()
+
+        if prompt_text:
+            try:
+                # Salvar o prompt no banco de dados
+                novo_prompt = Prompt(conteudo=prompt_text, data=datetime.now())
+                session.add(novo_prompt)
+                session.commit()
+
+                # Enviar ao GPT-4
+                resposta_gpt = analyze_data(prompt_text)
+                self.result_display.setText(resposta_gpt)
+
+                # Salvar a resposta do GPT-4 no banco de dados
+                novo_prompt.resposta = resposta_gpt
+                session.commit()
+
+            except Exception as e:
+                self.result_display.setText(f"Erro ao enviar pergunta ao GPT-4: {str(e)}")
+        else:
+            self.result_display.setText("Por favor, insira uma pergunta válida.")
 
     def show_graphs(self):
         """Exibe gráficos com base nos dados financeiros, sejam simulados ou reais."""
         try:
-            # Priorizar dados reais, se existirem; caso contrário, usar valores simulados
             custos = self.real_cost_data if self.real_cost_data else 10000
             receita = self.real_revenue_data if self.real_revenue_data else 15000
 
-            # Exibe gráfico de distribuição de custos usando QChart
+            # Gráfico de Distribuição de Custos
             categorias_custos = ["Serviços", "Infraestrutura", "Funcionários"]
             valores_custos = [custos * 0.4, custos * 0.2, custos * 0.4]
 
@@ -181,7 +226,7 @@ class MainWindow(QMainWindow):
             chart_widget.setWindowTitle("Distribuição de Custos")
             chart_widget.show()
 
-            # Exibir gráfico de evolução da receita usando Matplotlib e Seaborn
+            # Gráfico de Evolução da Receita
             meses = np.arange(1, 13)
             receitas = receita + np.random.uniform(-0.1, 0.1, 12) * receita
 
@@ -193,21 +238,9 @@ class MainWindow(QMainWindow):
             plt.grid(True)
             plt.show()
 
-            # Chamar automaticamente o GPT-4 para melhorar a análise
-            self.analyze_data_with_gpt()
-
         except ValueError:
-            self.result_label.setText("Por favor, insira valores válidos para os gráficos.")
+            self.result_display.setText("Por favor, insira valores válidos para os gráficos.")
 
-    def analyze_data_with_gpt(self):
-        """Função para enviar dados para o GPT-4 e obter insights. Integração automática."""
-        if self.real_cost_data and self.real_revenue_data:
-            prompt = f"Analisar custos e receita com base nos seguintes dados: Custos = {self.real_cost_data}, Receita = {self.real_revenue_data}."
-        else:
-            prompt = "Simule uma análise de custos e receita com base em valores padrão de custos (10000) e receita (15000)."
-
-        response = analyze_data(prompt)
-        self.result_label.setText(response)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

@@ -1,10 +1,9 @@
 
-
 ---
 
 # Lacet Prompt - Finance Balance Application
 
-Este é um aplicativo de balanço financeiro desenvolvido para gerenciar e rastrear dados financeiros.
+Este é um aplicativo de balanço financeiro desenvolvido para gerenciar e rastrear dados financeiros, incluindo integração com GPT-4 para análise de dados.
 
 ## Clonando o Repositório
 
@@ -32,111 +31,73 @@ Siga os passos abaixo para rodar o projeto localmente:
 2. Instale as dependências Python:
 
 ```bash
-pip install -r requirements/dev.txt
+pip install -r requirements.txt
 ```
 
-3. Instale as dependências Node.js:
+3. Execute o aplicativo:
 
 ```bash
-npm install
-npm run-script build
+python3 app_balance/gui_app.py
 ```
-
-4. Inicie o aplicativo (Webpack e Flask rodarão simultaneamente):
-
-```bash
-npm start
-```
-
-Visite `http://localhost:5000` no navegador para visualizar a aplicação.
 
 ---
 
 ## Inicialização do Banco de Dados
 
-Após instalar seu sistema de banco de dados, crie as tabelas e faça a migração inicial:
+Para inicializar o banco de dados, siga os seguintes passos:
+
+1. Crie o banco de dados e as tabelas executando o seguinte script:
 
 ```bash
-flask db init
-flask db migrate
-flask db upgrade
+python3 app_balance/database.py
 ```
 
 ---
 
-## Abertura de Shell
+## Estrutura do Projeto
 
-Para abrir um shell interativo no ambiente local, execute:
+O projeto utiliza uma estrutura de camadas, que inclui:
 
-```bash
-flask shell
-```
+- **app_balance/gui_app.py**: Interface gráfica desenvolvida em PyQt5 para interação com os dados e visualização de análises.
+- **app_balance/database.py**: Script de configuração e criação de banco de dados utilizando SQLAlchemy.
+- **app_balance/prompts.py**: Gerador de prompts e integração com o GPT-4 para análise financeira.
+- **app_balance/services/openai_service.py**: Serviço de integração com a API da OpenAI para envio e recepção de prompts.
+
+---
+
+## Funcionalidades Principais
+
+- **Análise Financeira Automatizada**: Envio de dados financeiros diretamente para GPT-4 para gerar relatórios e análises automáticas.
+- **Upload de Arquivos**: Suporte para upload de arquivos Excel, PDF e DOCX para processamento e análise de dados.
+- **Visualização de Gráficos**: Exibição de gráficos de evolução financeira utilizando Seaborn, Matplotlib, e Plotly.
 
 ---
 
 ## Rodando Testes e Linter
 
-Para rodar todos os testes localmente:
+Para rodar os testes e verificar a integridade do projeto:
 
 ```bash
-flask test
+python3 -m unittest discover -s tests
 ```
 
 Para rodar o linter e verificar erros de estilo de código:
 
 ```bash
-flask lint
-```
-
-Para evitar que o linter faça mudanças automáticas, utilize o argumento `--check`.
-
----
-
-## Rodando Testes Python Específicos
-
-Para rodar testes específicos de processamento de arquivos e dependências:
-
-```bash
-# Para os testes de processamento de arquivos
-python3 tests/processar_arquivos_teste.py
-
-# Para verificar dependências
-python3 tests/test_dependencies.py
-```
-
----
-
-## Migrações
-
-Quando for necessário fazer uma migração de banco de dados, siga estes passos:
-
-```bash
-flask db migrate
-flask db upgrade
-```
-
-Para adicionar as migrações ao controle de versão:
-
-```bash
-git add migrations/*
-git commit -m "Add migrations"
+flake8 app_balance
 ```
 
 ---
 
 ## Gerenciamento de Assets
 
-Arquivos estáticos (imagens, fontes, etc.) colocados dentro do diretório `assets` são copiados para `static/build` pelo Webpack. Use sempre `static_url_for` ao incluir conteúdo estático para garantir que o nome do arquivo contenha o hash correto:
+Os arquivos estáticos (imagens, fontes, etc.) estão localizados no diretório `assets`. Certifique-se de que os ativos estejam corretamente referenciados no código.
 
-```html
-<link rel="shortcut icon" href="{{static_url_for('static', filename='build/favicon.ico') }}">
-```
+---
 
-Para configurar o cache de arquivos estáticos por um ano, adicione a seguinte linha ao arquivo `.env`:
+## Contato
 
-```bash
-SEND_FILE_MAX_AGE_DEFAULT=31556926  # um ano
-```
+Caso precise de ajuda ou tenha alguma dúvida, entre em contato através do e-mail ou redes sociais do autor.
 
 ---
 
