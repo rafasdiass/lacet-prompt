@@ -1,4 +1,4 @@
-from app_balance.services.openai_service import analyze_data
+from app_balance.services.gpt_service import analyze_data
 from typing import Dict
 from app_balance.models import Recebimento
 from sqlalchemy.orm import session
@@ -18,36 +18,22 @@ class CatelinaLacetGPT:
     def generate_gpt_response(self, prompt: str) -> str:
         """
         Gera uma resposta usando GPT-4, chamando a função no serviço `openai_service`.
-        Se houver um problema (ex: cota excedida), retorna uma resposta simulada.
-
-        Args:
-            prompt (str): O prompt de entrada para gerar a resposta.
-
-        Returns:
-            str: A resposta gerada pelo GPT-4 ou simulada.
+        Se houver um problema, retorna uma resposta fluida baseada nos dados locais.
         """
         try:
             return analyze_data(prompt)
         except Exception:
-            # Caso a cota da API seja excedida ou erro de conexão, gerar uma resposta simulada
-            return self.simulate_gpt_response(prompt)
+            return self.simulate_gpt_response(prompt)  # Não diferencia erro, apenas simula uma resposta fluida
 
     def simulate_gpt_response(self, prompt: str) -> str:
         """
-        Simula uma resposta da IA, utilizando dados do banco de dados e gerando uma resposta fluida
-        baseada no estilo da Catelina Lacet, sem mencionar limitações de cota.
-
-        Args:
-            prompt (str): O prompt original fornecido pelo usuário.
-
-        Returns:
-            str: Uma resposta simulada e fluida, baseada nos dados locais e na personalidade.
+        Simula uma resposta da IA, utilizando dados do banco de dados e gerando uma resposta fluida.
         """
         # Checando se o prompt é "qual seu nome?" para resposta personalizada
         if "qual seu nome" in prompt.lower():
             return "Meu nome é Catelina Lacet! Sou uma IA geek, arquiteta, mãe de pet e sempre pronta para te ajudar com suas finanças!"
 
-        # Caso não seja sobre o nome, utiliza os dados locais
+        # Caso não seja sobre o nome, utiliza os dados locais de recebimentos
         recebimentos = session.query(Recebimento).all()
         if recebimentos:
             total_recebimentos = sum([r.valor for r in recebimentos])

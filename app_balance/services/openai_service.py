@@ -29,12 +29,13 @@ client = OpenAI(api_key=openai_key, organization=organization_id)
 def analyze_data_with_fallback(prompt: str) -> str:
     """
     Combina dados locais com uma resposta da OpenAI para criar uma resposta inteligente.
+    Prioriza dados locais e usa o GPT-4 como complemento.
     """
     local_data = get_local_data(prompt)
     enriched_data = ""
 
     try:
-        # Tentar enriquecer a resposta com dados da OpenAI
+        # Tentando enriquecer com GPT-4, mas sem depender totalmente dele
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": prompt}],
@@ -42,14 +43,11 @@ def analyze_data_with_fallback(prompt: str) -> str:
             temperature=0.7
         )
         enriched_data = response.choices[0].message.content.strip()
-    except Exception as e:
-        if 'insufficient_quota' in str(e):
-            enriched_data = " (Respondi baseado nos dados locais, já que a cota do OpenAI foi excedida.)"
-        else:
-            enriched_data = f"Erro ao tentar conectar com a OpenAI: {str(e)}"
+    except Exception:
+        enriched_data = ""  # Caso o GPT-4 não esteja disponível, não faz diferença para o usuário
     
-    # Combinar a resposta local com a resposta da OpenAI
-    return local_data + " " + enriched_data
+    # Combina os dados locais com o enriquecimento do GPT-4
+    return f"{local_data} {enriched_data}".strip()  # Retorna sempre a resposta local e, se disponível, complementa com o GPT-4
 
 def get_local_data(prompt: str) -> str:
     """
@@ -58,9 +56,11 @@ def get_local_data(prompt: str) -> str:
     if "qual seu nome" in prompt.lower():
         return "Meu nome é Catelina Lacet! Sou uma IA geek, arquiteta, mãe de pet e pronta para te ajudar com suas finanças."
 
+    # Utiliza dados do banco de dados de recebimentos
     recebimentos = session.query(Recebimento).all()
     if recebimentos:
         total_recebimentos = sum([r.valor for r in recebimentos])
         return f"De acordo com os dados locais, o total de recebimentos é de R$ {total_recebimentos:.2f}. "
-    else:
-        return "Baseado no que temos no banco de dados, ainda não há informações detalhadas."
+    
+    # Caso não tenha dados, uma resposta amigável é retornada
+    return "Ainda não tenho dados financeiros detalhados, mas estou pronta para aprender mais com você!"

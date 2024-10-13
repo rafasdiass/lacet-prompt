@@ -9,12 +9,7 @@ class GPTService:
     def enviar_prompt(self, prompt: str) -> str:
         """
         Envia um prompt para a IA, combinando dados locais e da OpenAI.
-
-        Args:
-            prompt (str): O prompt a ser enviado.
-
-        Returns:
-            str: Uma resposta combinada com dados locais e da OpenAI.
+        A resposta local é priorizada e o GPT-4 complementa.
         """
         return analyze_data_with_fallback(prompt)
 

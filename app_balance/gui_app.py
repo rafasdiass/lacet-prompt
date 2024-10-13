@@ -37,9 +37,19 @@ class MainWindow(QMainWindow):
     def setup_ui(self):
         layout = QVBoxLayout()
 
-        # Criar layout para o botão de mudança de humor no topo direito
+        # Criar layout para o botão de mudança de humor e logo no topo
         top_layout = QHBoxLayout()
+        top_layout.setSpacing(10)  # Reduz a margem entre a logo e o botão de humor
         top_layout.addStretch()
+
+        # Logo no topo, reduzida
+        self.logo = QLabel()
+        pixmap = QPixmap('assets/LOGO-BRANCA.PNG')
+        self.logo.setPixmap(pixmap)
+        self.logo.setAlignment(Qt.AlignLeft)  # Alinhamento à esquerda
+        self.logo.setFixedSize(120, 40)  # Reduzindo o tamanho da logo
+        self.logo.setScaledContents(True)
+        top_layout.addWidget(self.logo, alignment=Qt.AlignLeft)
 
         # Botão de mudar o humor - no canto superior direito
         self.humor_button = QPushButton()
@@ -49,24 +59,14 @@ class MainWindow(QMainWindow):
             QPushButton {
                 background-color: transparent;
                 border: none;
-                padding: 10px;
-                margin: 10px;
+                padding: 0;
+                margin: 0;
             }
         """)
         self.humor_button.clicked.connect(self.cycle_humor)
         top_layout.addWidget(self.humor_button, alignment=Qt.AlignRight)
-        layout.addLayout(top_layout)
 
-        # Adicionando o logotipo centralizado
-        logo_layout = QVBoxLayout()
-        self.logo = QLabel()
-        pixmap = QPixmap('assets/LOGO-BRANCA.PNG')
-        self.logo.setPixmap(pixmap)
-        self.logo.setAlignment(Qt.AlignCenter)
-        self.logo.setFixedSize(150, 50)  # Reduzindo o tamanho da logo
-        self.logo.setScaledContents(True)
-        logo_layout.addWidget(self.logo)
-        layout.addLayout(logo_layout)
+        layout.addLayout(top_layout)
 
         # Área de texto de conversas com rolagem
         scroll_area = QScrollArea()
@@ -87,7 +87,7 @@ class MainWindow(QMainWindow):
         self.input_field = QLineEdit(self)
         self.input_field.setPlaceholderText("Digite sua pergunta para a Catelina Lacet...")
         self.input_field.setStyleSheet("font-size: 16px; padding: 10px; background-color: #696969; color: white;")
-        self.input_field.setMinimumHeight(60)  # Aumentando o tamanho do campo de input
+        self.input_field.setMinimumHeight(60)
         input_layout.addWidget(self.input_field)
 
         # Botões ao lado do campo de input
@@ -166,7 +166,7 @@ class MainWindow(QMainWindow):
                 with open(file_path, 'rb') as f:
                     file_data = f.read()
                 resposta_gpt = self.file_service.processar_arquivo(file_data, file_type)
-                self.result_display.append(f"<p style='color: white;'>Arquivo processado com sucesso:\n{resposta_gpt}</p>")
+                self.result_display.append(f"<p style='color: cyan;'>Arquivo processado com sucesso:\n{resposta_gpt}</p>")
                 # Habilitar os botões de análise após o envio do arquivo
                 self.analyze_cost_button.setEnabled(True)
                 self.analyze_cost_button.setStyleSheet("background-color: #E6E6FA;")
