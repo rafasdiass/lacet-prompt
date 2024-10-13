@@ -6,6 +6,7 @@ from app_balance.services.gpt_module import CatelinaLacetGPT
 from app_balance.services.file_processing_service import FileProcessingService
 from app_balance.services.user_preferences_service import UserPreferencesService
 
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -83,7 +84,7 @@ class MainWindow(QMainWindow):
 
         # Botão de enviar pergunta
         send_button = QPushButton()
-        send_button.setIcon(QIcon(qtawesome.icon('fa.send', color='black')))
+        send_button.setIcon(QIcon(qtawesome.icon('fa.paper-plane', color='black')))
         send_button.setIconSize(QSize(30, 30))
         send_button.setStyleSheet("background-color: #E6E6FA; border-radius: 8px;")
         send_button.clicked.connect(self.enviar_pergunta)
@@ -91,7 +92,7 @@ class MainWindow(QMainWindow):
 
         # Botão de análise de custos
         self.analyze_cost_button = QPushButton()
-        self.analyze_cost_button.setIcon(QIcon(qtawesome.icon('fa.money', color='black')))
+        self.analyze_cost_button.setIcon(QIcon(qtawesome.icon('fa.money', color='black')))  # Ícone substituído
         self.analyze_cost_button.setIconSize(QSize(30, 30))
         self.analyze_cost_button.setStyleSheet("background-color: #C0C0C0; border-radius: 8px;")
         self.analyze_cost_button.setEnabled(False)
