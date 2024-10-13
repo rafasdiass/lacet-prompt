@@ -1,6 +1,6 @@
 from openai import OpenAI
 from environs import Env
-from app_balance.models import Recebimento  # Importar o modelo Recebimento
+from app_balance.models import Recebimento
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 
@@ -14,7 +14,6 @@ session = Session()
 env = Env()
 env.read_env()
 
-# Verifica se a chave da API e o ID da organização estão definidos
 openai_key = env.str("OPENAI_API_KEY", default=None)
 organization_id = env.str("OPENAI_ORG_ID", default=None)
 
@@ -27,34 +26,41 @@ if not organization_id:
 # Instancia o cliente da API OpenAI com a chave e o ID da organização
 client = OpenAI(api_key=openai_key, organization=organization_id)
 
-def analyze_data(prompt: str) -> str:
+def analyze_data_with_fallback(prompt: str) -> str:
     """
-    Interage com a API do OpenAI para analisar dados com base no prompt fornecido.
-    Se falhar por excesso de cota, retorna uma resposta simulada.
+    Combina dados locais com uma resposta da OpenAI para criar uma resposta inteligente.
     """
+    local_data = get_local_data(prompt)
+    enriched_data = ""
+
     try:
+        # Tentar enriquecer a resposta com dados da OpenAI
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",  # Altere para o modelo compatível
+            model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": prompt}],
             max_tokens=500,
             temperature=0.7
         )
-        return response.choices[0].message.content.strip()
+        enriched_data = response.choices[0].message.content.strip()
     except Exception as e:
-        # Se for erro de cota, usar dados locais
         if 'insufficient_quota' in str(e):
-            return simulate_analyze_data(prompt)
+            enriched_data = " (Respondi baseado nos dados locais, já que a cota do OpenAI foi excedida.)"
         else:
-            return f"Erro ao comunicar com o OpenAI: {str(e)}"
+            enriched_data = f"Erro ao tentar conectar com a OpenAI: {str(e)}"
+    
+    # Combinar a resposta local com a resposta da OpenAI
+    return local_data + " " + enriched_data
 
-def simulate_analyze_data(prompt: str) -> str:
+def get_local_data(prompt: str) -> str:
     """
-    Retorna uma análise simulada usando dados locais.
+    Responde com dados locais, priorizando informações já armazenadas no banco de dados.
     """
-    # Integração com dados do banco de dados
+    if "qual seu nome" in prompt.lower():
+        return "Meu nome é Catelina Lacet! Sou uma IA geek, arquiteta, mãe de pet e pronta para te ajudar com suas finanças."
+
     recebimentos = session.query(Recebimento).all()
     if recebimentos:
         total_recebimentos = sum([r.valor for r in recebimentos])
-        return f"A resposta baseada nos dados locais: total de recebimentos é R$ {total_recebimentos:.2f}."
+        return f"De acordo com os dados locais, o total de recebimentos é de R$ {total_recebimentos:.2f}. "
     else:
-        return f"Baseado no prompt '{prompt}', não há dados locais disponíveis."
+        return "Baseado no que temos no banco de dados, ainda não há informações detalhadas."

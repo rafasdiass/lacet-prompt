@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QPushButton, QLabel, QFileDialog, QWidget, QLineEdit, QTextEdit, QHBoxLayout, QDialog, QComboBox, QDialogButtonBox, QMessageBox
+from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QPushButton, QLabel, QFileDialog, QWidget, QLineEdit, QTextEdit, QHBoxLayout, QMessageBox, QScrollArea
 from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtGui import QPixmap, QIcon
 import qtawesome
@@ -27,33 +27,9 @@ class MainWindow(QMainWindow):
         self.file_service = FileProcessingService()
         self.user_preferences_service = UserPreferencesService()
 
-        # Definir os estilos dos botões
-        self.button_style_enabled = """
-            QPushButton {
-                background-color: #E6E6FA;
-                color: black;
-                font-size: 16px;
-                padding: 10px;
-                border-radius: 8px;
-                min-width: 250px;
-                margin-top: 20px;
-            }
-            QPushButton:hover {
-                background-color: #D8BFD8;
-            }
-        """
-
-        self.button_style_disabled = """
-            QPushButton {
-                background-color: #C0C0C0;
-                color: black;
-                font-size: 16px;
-                padding: 10px;
-                border-radius: 8px;
-                min-width: 250px;
-                margin-top: 20px;
-            }
-        """
+        # Estado inicial do humor
+        self.humores = ['padrao', 'compreensivo', 'sarcastico']
+        self.humor_index = 0
 
         # Inicializando a interface de usuário
         self.setup_ui()
@@ -66,137 +42,118 @@ class MainWindow(QMainWindow):
         top_layout.addStretch()
 
         # Botão de mudar o humor - no canto superior direito
-        self.mudar_humor_button = QPushButton()
-        self.mudar_humor_button.setIcon(qtawesome.icon('fa.gear', color='white'))
-        self.mudar_humor_button.setIconSize(QSize(40, 40))
-        self.mudar_humor_button.setStyleSheet("""
+        self.humor_button = QPushButton()
+        self.humor_button.setIcon(self.get_humor_icon())
+        self.humor_button.setIconSize(QSize(40, 40))
+        self.humor_button.setStyleSheet("""
             QPushButton {
                 background-color: transparent;
                 border: none;
                 padding: 10px;
                 margin: 10px;
             }
-            QPushButton:hover {
-                color: #FFD700;
-            }
         """)
-        self.mudar_humor_button.clicked.connect(self.abrir_modal_humor)
-        top_layout.addWidget(self.mudar_humor_button, alignment=Qt.AlignRight)
+        self.humor_button.clicked.connect(self.cycle_humor)
+        top_layout.addWidget(self.humor_button, alignment=Qt.AlignRight)
         layout.addLayout(top_layout)
 
-        # Adicionando o logotipo
+        # Adicionando o logotipo centralizado
+        logo_layout = QVBoxLayout()
         self.logo = QLabel()
         pixmap = QPixmap('assets/LOGO-BRANCA.PNG')
         self.logo.setPixmap(pixmap)
         self.logo.setAlignment(Qt.AlignCenter)
-        self.logo.setFixedSize(400, 150)
+        self.logo.setFixedSize(150, 50)  # Reduzindo o tamanho da logo
         self.logo.setScaledContents(True)
-        layout.addWidget(self.logo)
+        logo_layout.addWidget(self.logo)
+        layout.addLayout(logo_layout)
 
-        # Mensagem de boas-vindas
-        self.welcome_message = QLabel(self.get_dynamic_welcome_message())
-        self.welcome_message.setWordWrap(True)
-        self.welcome_message.setStyleSheet("color: yellow; font-size: 24px; font-family: 'Arial', sans-serif;")
-        self.welcome_message.setAlignment(Qt.AlignCenter)
-        layout.addWidget(self.welcome_message)
-
-        # Criar layout horizontal para os botões centrais
-        button_layout = QHBoxLayout()
-
-        # Botão de upload de arquivos (PDF, Excel, DOCX)
-        self.upload_button = QPushButton("Enviar Arquivo")
-        self.upload_button.setIcon(qtawesome.icon('fa.upload', color='black'))
-        self.upload_button.setStyleSheet(self.button_style_enabled)
-        self.upload_button.clicked.connect(self.upload_file)
-        button_layout.addWidget(self.upload_button)
-
-        # Botão para análise de custos
-        self.analyze_cost_button = QPushButton("Análise de Custos")
-        self.analyze_cost_button.setIcon(qtawesome.icon('fa.money', color='black'))
-        self.analyze_cost_button.setStyleSheet(self.button_style_disabled)
-        self.analyze_cost_button.clicked.connect(self.mensagem_arquivo_necessario)
-        button_layout.addWidget(self.analyze_cost_button)
-
-        # Botão para análise de investimentos
-        self.analyze_investment_button = QPushButton("Análise de Investimentos")
-        self.analyze_investment_button.setIcon(qtawesome.icon('fa.line-chart', color='black'))
-        self.analyze_investment_button.setStyleSheet(self.button_style_disabled)
-        self.analyze_investment_button.clicked.connect(self.mensagem_arquivo_necessario)
-        button_layout.addWidget(self.analyze_investment_button)
-
-        layout.addLayout(button_layout)
-
-        # Campo de exibição dos resultados
-        self.result_display = QTextEdit(self)
+        # Área de texto de conversas com rolagem
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        self.result_display = QTextEdit()
         self.result_display.setReadOnly(True)
-        layout.addWidget(self.result_display)
+        self.result_display.setStyleSheet("background-color: #2E2E2E; color: white; font-size: 16px; padding: 10px;")
+        scroll_area.setWidget(self.result_display)
+        layout.addWidget(scroll_area)
 
-        # Campo de input no rodapé com ícone de envio
-        footer_layout = QHBoxLayout()
+        # Primeira mensagem de boas-vindas da IA
+        self.result_display.append(f"<p style='color: yellow;'>Catelina Lacet: {self.get_dynamic_welcome_message()}</p>")
+
+        # Criar layout horizontal para o campo de input e botões
+        input_layout = QHBoxLayout()
+
+        # Campo de input de texto
         self.input_field = QLineEdit(self)
         self.input_field.setPlaceholderText("Digite sua pergunta para a Catelina Lacet...")
-        self.input_field.setStyleSheet("font-size: 16px; padding: 20px; background-color: #696969; color: white;")
-        self.input_field.setMinimumHeight(80)
+        self.input_field.setStyleSheet("font-size: 16px; padding: 10px; background-color: #696969; color: white;")
+        self.input_field.setMinimumHeight(60)  # Aumentando o tamanho do campo de input
+        input_layout.addWidget(self.input_field)
 
-        # Botão de envio dentro do campo de input
+        # Botões ao lado do campo de input
         send_button = QPushButton()
         send_button.setIcon(QIcon(qtawesome.icon('fa.send', color='black')))
-        send_button.setStyleSheet("""
-            QPushButton {
-                background-color: #E6E6FA;
-                border-radius: 8px;
-                padding: 10px;
-                min-width: 50px;
-                min-height: 50px;
-            }
-            QPushButton:hover {
-                background-color: #D8BFD8;
-            }
-        """)
+        send_button.setIconSize(QSize(30, 30))
+        send_button.setStyleSheet("background-color: #E6E6FA; border-radius: 8px;")
         send_button.clicked.connect(self.enviar_pergunta)
+        input_layout.addWidget(send_button)
 
-        # Adiciona o campo de input e o botão de envio no rodapé
-        footer_layout.addWidget(self.input_field)
-        footer_layout.addWidget(send_button)
-        layout.addLayout(footer_layout)
+        self.analyze_cost_button = QPushButton()
+        self.analyze_cost_button.setIcon(QIcon(qtawesome.icon('fa.money', color='black')))
+        self.analyze_cost_button.setIconSize(QSize(30, 30))
+        self.analyze_cost_button.setStyleSheet("background-color: #C0C0C0; border-radius: 8px;")
+        self.analyze_cost_button.setEnabled(True)
+        self.analyze_cost_button.clicked.connect(self.mensagem_arquivo_necessario)
+        input_layout.addWidget(self.analyze_cost_button)
 
+        self.analyze_investment_button = QPushButton()
+        self.analyze_investment_button.setIcon(QIcon(qtawesome.icon('fa.line-chart', color='black')))
+        self.analyze_investment_button.setIconSize(QSize(30, 30))
+        self.analyze_investment_button.setStyleSheet("background-color: #C0C0C0; border-radius: 8px;")
+        self.analyze_investment_button.setEnabled(True)
+        self.analyze_investment_button.clicked.connect(self.mensagem_arquivo_necessario)
+        input_layout.addWidget(self.analyze_investment_button)
+
+        upload_button = QPushButton()
+        upload_button.setIcon(QIcon(qtawesome.icon('fa.upload', color='black')))
+        upload_button.setIconSize(QSize(30, 30))
+        upload_button.setStyleSheet("background-color: #E6E6FA; border-radius: 8px;")
+        upload_button.clicked.connect(self.upload_file)
+        input_layout.addWidget(upload_button)
+
+        layout.addLayout(input_layout)
+
+        # Definir o widget central
         central_widget = QWidget()
         central_widget.setLayout(layout)
         self.setCentralWidget(central_widget)
 
     def enviar_pergunta(self):
-        """Envia a pergunta digitada ao GPT-4 e exibe a resposta, ou usa dados locais se cota estiver excedida."""
+        """Envia a pergunta digitada ao GPT-4 e exibe a resposta, priorizando dados locais."""
         prompt = self.input_field.text()
         resposta = self.gpt_service.enviar_prompt(prompt)
-        self.result_display.setText(resposta)
+        self.result_display.append(f"<p style='color: cyan;'>Você: {prompt}</p>")
+        self.result_display.append(f"<p style='color: yellow;'>Catelina Lacet: {resposta}</p>")
+        self.input_field.clear()
 
-    def abrir_modal_humor(self):
-        """Abre um modal para o usuário selecionar o humor."""
-        dialog = QDialog(self)
-        dialog.setWindowTitle("Selecione o Humor")
-        dialog.setFixedSize(300, 200)
+    def cycle_humor(self):
+        """Troca o humor e atualiza o ícone e a mensagem de boas-vindas."""
+        self.humor_index = (self.humor_index + 1) % len(self.humores)
+        humor = self.humores[self.humor_index]
+        self.user_preferences_service.set_humor(humor)
+        self.humor_button.setIcon(self.get_humor_icon())
+        humor_message = self.get_dynamic_welcome_message()
+        self.result_display.append(f"<p style='color: yellow;'>Catelina Lacet: {humor_message}</p>")
 
-        layout = QVBoxLayout()
-
-        # ComboBox para seleção do humor
-        humor_combo = QComboBox(dialog)
-        humor_combo.addItems(['Padrão', 'Compreensivo', 'Sarcastico'])
-        layout.addWidget(humor_combo)
-
-        # Botões para confirmar ou cancelar
-        button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        button_box.accepted.connect(lambda: self.set_humor(humor_combo.currentText(), dialog))
-        button_box.rejected.connect(dialog.reject)
-        layout.addWidget(button_box)
-
-        dialog.setLayout(layout)
-        dialog.exec_()
-
-    def set_humor(self, humor: str, dialog: QDialog):
-        """Define o humor com base na escolha do usuário."""
-        self.user_preferences_service.set_humor(humor.lower())
-        self.welcome_message.setText(self.get_dynamic_welcome_message())
-        dialog.accept()
+    def get_humor_icon(self):
+        """Retorna o ícone correspondente ao humor atual."""
+        humor = self.humores[self.humor_index]
+        if humor == 'sarcastico':
+            return QIcon(qtawesome.icon('fa.frown-o', color='red'))  # Zangado
+        elif humor == 'compreensivo':
+            return QIcon(qtawesome.icon('fa.smile-o', color='green'))  # Sorriso leve
+        else:
+            return QIcon(qtawesome.icon('fa.smile-o', color='yellow'))  # Sorriso largo (padrão)
 
     def upload_file(self):
         """Permite o upload de arquivos PDF, Excel ou DOCX para processamento."""
@@ -209,72 +166,25 @@ class MainWindow(QMainWindow):
                 with open(file_path, 'rb') as f:
                     file_data = f.read()
                 resposta_gpt = self.file_service.processar_arquivo(file_data, file_type)
-                self.result_display.setText(f"Arquivo processado com sucesso:\n{resposta_gpt}")
-                # Habilita os botões após o envio do arquivo
+                self.result_display.append(f"<p style='color: white;'>Arquivo processado com sucesso:\n{resposta_gpt}</p>")
+                # Habilitar os botões de análise após o envio do arquivo
                 self.analyze_cost_button.setEnabled(True)
+                self.analyze_cost_button.setStyleSheet("background-color: #E6E6FA;")
                 self.analyze_investment_button.setEnabled(True)
-                self.analyze_cost_button.setStyleSheet(self.button_style_enabled)
-                self.analyze_investment_button.setStyleSheet(self.button_style_enabled)
-                # Alterar ações dos botões para análise real
-                self.analyze_cost_button.clicked.connect(self.analyze_costs)
-                self.analyze_investment_button.clicked.connect(self.analyze_investments)
+                self.analyze_investment_button.setStyleSheet("background-color: #E6E6FA;")
             except Exception as e:
-                self.result_display.setText(f"Erro ao processar o arquivo: {str(e)}")
+                self.result_display.append(f"<p style='color: red;'>Erro ao processar o arquivo: {str(e)}</p>")
 
-    def analyze_costs(self):
-        """Realiza a análise de custos com base nos dados reais carregados e exibe o resultado."""
-        try:
-            recebimentos = session.query(Recebimento).all()
-            if not recebimentos:
-                self.result_display.setText("Nenhum dado de custos foi encontrado. Por favor, envie os arquivos primeiro.")
-                return
-
-            total_custos = sum([r.valor for r in recebimentos])
-            valor_hora = total_custos / 160
-            categorias_custos = {
-                'Serviços': total_custos * 0.4,
-                'Infraestrutura': total_custos * 0.3,
-                'Funcionários': total_custos * 0.3
-            }
-
-            receita_projetada = total_custos * 1.5
-
-            resposta = self.gpt_service.analyze_costs(
-                {
-                    'total_custos': total_custos,
-                    'valor_hora': valor_hora,
-                    'categorias_custos': categorias_custos
-                },
-                receita_projetada
-            )
-            self.result_display.setText(resposta)
-        except Exception as e:
-            self.result_display.setText(f"Erro ao realizar análise de custos: {str(e)}")
-
-    def analyze_investments(self):
-        """Realiza a análise de investimentos e exibe o resultado."""
-        resposta = self.gpt_service.analyze_investments()
-        self.result_display.setText(resposta)
+    def mensagem_arquivo_necessario(self):
+        """Exibe mensagem quando tentam usar botões desativados."""
+        self.result_display.append("<p style='color: red;'>É necessário enviar os arquivos antes de realizar a análise.</p>")
 
     def get_dynamic_welcome_message(self):
         """Retorna uma mensagem de boas-vindas dinâmica com base no humor atual."""
         humor = self.user_preferences_service.get_humor_atual()
-        welcome = "Bem-vinda, Catherine!\n"
         if humor == 'sarcastico':
-            return welcome + "Prepare-se para aprender mais sobre finanças... se é que você entende algo disso."
+            return "Prepare-se para aprender mais sobre finanças... se é que você entende algo disso."
         elif humor == 'compreensivo':
-            return welcome + "Vamos juntos conquistar sua estabilidade financeira com calma e paciência."
+            return "Vamos juntos conquistar sua estabilidade financeira com calma e paciência."
         else:
-            return welcome + "Vamos começar a jornada para dominar suas finanças!"
-
-    def mensagem_arquivo_necessario(self):
-        """Exibe mensagem quando tentam usar botões desativados."""
-        self.show_message("É necessário enviar os arquivos antes de realizar a análise.")
-
-    def show_message(self, message: str):
-        """Exibe uma mensagem ao usuário."""
-        msg_box = QMessageBox()
-        msg_box.setIcon(QMessageBox.Information)
-        msg_box.setText(message)
-        msg_box.setWindowTitle("Informação")
-        msg_box.exec_()
+            return "Vamos começar a jornada para dominar suas finanças!"

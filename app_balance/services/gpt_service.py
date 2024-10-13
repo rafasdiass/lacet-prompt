@@ -1,27 +1,26 @@
-from app_balance.services.openai_service import analyze_data
+from app_balance.services.openai_service import analyze_data_with_fallback
 
 class GPTService:
     """
     Serviço para gerenciar a comunicação com o GPT-4, enviando prompts e recebendo respostas.
-    Este serviço é focado apenas na comunicação com a OpenAI.
+    Este serviço é focado em combinar dados locais com respostas da OpenAI.
     """
 
     def enviar_prompt(self, prompt: str) -> str:
         """
-        Envia um prompt para o GPT-4 e retorna a resposta.
-        Se falhar por exceder cota, retorna uma resposta simulada.
+        Envia um prompt para a IA, combinando dados locais e da OpenAI.
 
         Args:
             prompt (str): O prompt a ser enviado.
 
         Returns:
-            str: A resposta do GPT-4.
+            str: Uma resposta combinada com dados locais e da OpenAI.
         """
-        return analyze_data(prompt)
+        return analyze_data_with_fallback(prompt)
 
     def gerar_prompt_recebimentos(self, recebimentos: list) -> str:
         """
-        Gera um prompt detalhado com base nos recebimentos extraídos para análise via GPT-4.
+        Gera um prompt detalhado com base nos recebimentos para análise via GPT-4.
 
         Args:
             recebimentos (list): Lista de objetos Recebimento contendo dados de recebimentos.
@@ -34,7 +33,7 @@ class GPTService:
 
         prompt = (
             f"Você recebeu os seguintes recebimentos ao longo do mês:\n{detalhes_recebimentos}\n\n"
-            f"O total de recebimentos foi de R$ {total_recebimentos:.2f}.\n"
+            f"O total de recebimentos foi de R$ {total_recebimentos:.2f}. "
             "Por favor, forneça uma análise detalhada desses recebimentos, incluindo sugestões sobre como melhor gerenciá-los."
         )
 

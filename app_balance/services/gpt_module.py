@@ -1,73 +1,81 @@
 from app_balance.services.openai_service import analyze_data
 from typing import Dict
+from app_balance.models import Recebimento
+from sqlalchemy.orm import session
 
 class CatelinaLacetGPT:
     """
     A simpática e bem-humorada IA 'Catelina Lacet' que usa GPT-4 para fornecer análises
     financeiras com referências divertidas a filmes, heróis, cultura pop e humor.
     Ela mistura dados financeiros complexos com uma abordagem leve e divertida.
+    Catelina Lacet tem 45 anos, é geek, arquiteta, mãe de pet e bem-humorada.
     """
 
     def __init__(self, tipo_humor: str = 'padrao'):
         self.tipo_humor = tipo_humor
+        self.dados_aprendidos = []  # Armazenará os dados aprendidos
 
     def generate_gpt_response(self, prompt: str) -> str:
         """
         Gera uma resposta usando GPT-4, chamando a função no serviço `openai_service`.
+        Se houver um problema (ex: cota excedida), retorna uma resposta simulada.
 
         Args:
             prompt (str): O prompt de entrada para gerar a resposta.
 
         Returns:
-            str: A resposta gerada pelo GPT-4.
+            str: A resposta gerada pelo GPT-4 ou simulada.
         """
-        return analyze_data(prompt)
+        try:
+            return analyze_data(prompt)
+        except Exception:
+            # Caso a cota da API seja excedida ou erro de conexão, gerar uma resposta simulada
+            return self.simulate_gpt_response(prompt)
 
-    def generate_dynamic_references(self) -> str:
+    def simulate_gpt_response(self, prompt: str) -> str:
         """
-        Gera uma resposta GPT-4 que inclui citações e referências aleatórias sobre filmes,
-        heróis e cultura pop, com foco em finanças e negócios, adaptando ao tipo de humor.
-
-        Returns:
-            str: Uma resposta gerada dinamicamente usando o GPT-4.
-        """
-        prompt = self._gerar_prompt_referencias()
-        return self.generate_gpt_response(prompt)
-
-    def _gerar_prompt_referencias(self) -> str:
-        """
-        Gera o prompt de referências dinâmicas baseado no tipo de humor do usuário.
-
-        Returns:
-            str: O prompt que será enviado ao GPT-4 para gerar a resposta.
-        """
-        base_prompt = """
-        Imagine que você é uma IA bem-humorada chamada Catelina Lacet, e você está prestes a dar conselhos financeiros importantes. 
-        Misture referências a filmes dos anos 80, super-heróis e cultura pop enquanto fala sobre finanças e economia. 
-        Faça isso de uma forma leve e divertida.
-        """
-        if self.tipo_humor == 'sarcastico':
-            return base_prompt + """
-            Adicione um toque sarcástico. Imagine como seria se Tony Stark desse conselhos financeiros, sempre com um tom de ironia.
-            """
-        elif self.tipo_humor == 'compreensivo':
-            return base_prompt + """
-            Adicione uma abordagem compreensiva e de apoio emocional. Como se a Mulher Maravilha estivesse ajudando alguém a lidar com seus desafios financeiros, sempre com empatia.
-            """
-        else:
-            return base_prompt + """
-            Seja divertida, mas mantenha a clareza e objetividade. Pense em uma mistura de Peter Parker e Marty McFly dando conselhos sobre como equilibrar as finanças.
-            """
-
-    def definir_tipo_humor(self, tipo_humor: str):
-        """
-        Define o tipo de humor para a IA Catelina Lacet.
+        Simula uma resposta da IA, utilizando dados do banco de dados e gerando uma resposta fluida
+        baseada no estilo da Catelina Lacet, sem mencionar limitações de cota.
 
         Args:
-            tipo_humor (str): O tipo de humor ('sarcastico', 'compreensivo', 'padrao').
+            prompt (str): O prompt original fornecido pelo usuário.
+
+        Returns:
+            str: Uma resposta simulada e fluida, baseada nos dados locais e na personalidade.
         """
-        tipos_validos = ['sarcastico', 'compreensivo', 'padrao']
-        if tipo_humor in tipos_validos:
-            self.tipo_humor = tipo_humor
+        # Checando se o prompt é "qual seu nome?" para resposta personalizada
+        if "qual seu nome" in prompt.lower():
+            return "Meu nome é Catelina Lacet! Sou uma IA geek, arquiteta, mãe de pet e sempre pronta para te ajudar com suas finanças!"
+
+        # Caso não seja sobre o nome, utiliza os dados locais
+        recebimentos = session.query(Recebimento).all()
+        if recebimentos:
+            total_recebimentos = sum([r.valor for r in recebimentos])
+            resposta_base = f"Ah, {total_recebimentos:.2f} reais recebidos recentemente! Parece que as finanças estão no caminho certo. "
+            
+            if self.tipo_humor == 'sarcastico':
+                return resposta_base + "Agora, se você conseguir segurar esses ganhos sem gastar tudo em gadgets como Tony Stark, talvez tenhamos uma chance!"
+            elif self.tipo_humor == 'compreensivo':
+                return resposta_base + "Estou aqui para ajudar! Vamos trabalhar juntos para garantir que tudo fique sob controle, como a Mulher Maravilha organizando suas finanças."
+            else:  # padrão
+                return resposta_base + "Mantenha o foco, assim como Marty McFly manteve o DeLorean a 88 milhas por hora. Estamos indo para o futuro financeiro!"
         else:
-            raise ValueError(f"Tipo de humor inválido. Escolha entre: {', '.join(tipos_validos)}.")
+            if self.tipo_humor == 'sarcastico':
+                return "Bem, sem dados financeiros, parece que você está mais perdido do que o Thor sem o martelo. Que tal começar adicionando algumas informações?"
+            elif self.tipo_humor == 'compreensivo':
+                return "Entendo que estamos sem dados por enquanto, mas juntos encontraremos o caminho certo. Vamos começar devagar e construir algo sólido, ok?"
+            else:  # padrão
+                return "Sem dados por enquanto, mas tudo bem! Vamos organizar isso e garantir que você tenha tudo em ordem. Como Marty McFly, estamos só começando!"
+
+    def aprender_com_dados(self, novos_dados: Dict):
+        """
+        A Catelina Lacet aprende com novos dados fornecidos e os usa para aprimorar respostas futuras.
+
+        Args:
+            novos_dados (Dict): Um dicionário contendo os novos dados que a IA deve aprender.
+        
+        Returns:
+            str: Uma mensagem confirmando que os dados foram aprendidos.
+        """
+        self.dados_aprendidos.append(novos_dados)
+        return "Obrigada pelos novos dados! Estou aprendendo e ficarei ainda mais afiada em minhas análises."
