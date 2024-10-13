@@ -24,6 +24,28 @@ class MainWindow(QMainWindow):
     def setup_ui(self):
         layout = QVBoxLayout()
 
+        # Criar layout para o botão de mudança de humor no topo direito
+        top_layout = QHBoxLayout()
+        top_layout.addStretch()  # Adiciona espaço à esquerda
+
+        # Botão de mudar o humor - no canto superior direito
+        self.mudar_humor_button = QPushButton()
+        self.mudar_humor_button.setIcon(qtawesome.icon('fa.gear', color='white'))  # Ícone da engrenagem branco
+        self.mudar_humor_button.setStyleSheet("""
+            QPushButton {
+                background-color: transparent;
+                border: none;
+                padding: 10px;
+                margin: 10px;
+            }
+            QPushButton:hover {
+                color: #D8BFD8;  /* Muda para uma cor pastel no hover */
+            }
+        """)
+        self.mudar_humor_button.clicked.connect(self.mudar_humor)
+        top_layout.addWidget(self.mudar_humor_button, alignment=Qt.AlignRight)
+        layout.addLayout(top_layout)  # Adiciona o layout de topo ao layout principal
+
         # Adicionando o logotipo
         self.logo = QLabel()
         pixmap = QPixmap('assets/LOGO-BRANCA.PNG')
@@ -33,7 +55,10 @@ class MainWindow(QMainWindow):
         self.logo.setScaledContents(True)  # Mantém a qualidade ao redimensionar
         layout.addWidget(self.logo)
 
-        # Configuração dos botões com estilos corrigidos
+        # Criar layout horizontal para os botões centrais
+        button_layout = QHBoxLayout()
+
+        # Configuração dos botões com estilos corrigidos e margem superior
         button_style = """
             QPushButton {
                 background-color: #E6E6FA;  /* Cor pastel */
@@ -41,33 +66,36 @@ class MainWindow(QMainWindow):
                 font-size: 16px;
                 padding: 10px;
                 border-radius: 8px;
-                min-width: 300px;  /* Todos os botões têm a mesma largura */
+                min-width: 250px;
+                margin-top: 20px;  /* Adicionando margem superior */
             }
             QPushButton:hover {
                 background-color: #D8BFD8;  /* Hover em uma cor pastel mais escura */
             }
         """
 
-        # Botão de mudar o humor
-        self.mudar_humor_button = QPushButton("Humor")
-        self.mudar_humor_button.setIcon(qtawesome.icon('fa.gear'))
-        self.mudar_humor_button.setStyleSheet(button_style)
-        self.mudar_humor_button.clicked.connect(self.mudar_humor)
-        layout.addWidget(self.mudar_humor_button, alignment=Qt.AlignCenter)
-
         # Botão de upload de arquivos (PDF, Excel, DOCX)
         self.upload_button = QPushButton("Enviar Arquivo")
-        self.upload_button.setIcon(qtawesome.icon('fa.upload'))
+        self.upload_button.setIcon(qtawesome.icon('fa.upload', color='black'))
         self.upload_button.setStyleSheet(button_style)
         self.upload_button.clicked.connect(self.upload_file)
-        layout.addWidget(self.upload_button, alignment=Qt.AlignCenter)
+        button_layout.addWidget(self.upload_button)
 
         # Botão para análise de custos (simulação)
         self.analyze_cost_button = QPushButton("Análise de Custos")
         self.analyze_cost_button.setIcon(qtawesome.icon('fa.money', color='black'))
         self.analyze_cost_button.setStyleSheet(button_style)
         self.analyze_cost_button.clicked.connect(self.analyze_costs)
-        layout.addWidget(self.analyze_cost_button, alignment=Qt.AlignCenter)
+        button_layout.addWidget(self.analyze_cost_button)
+
+        # Botão para análise de investimentos
+        self.analyze_investment_button = QPushButton("Análise de Investimentos")
+        self.analyze_investment_button.setIcon(qtawesome.icon('fa.line-chart', color='black'))
+        self.analyze_investment_button.setStyleSheet(button_style)
+        self.analyze_investment_button.clicked.connect(self.analyze_investments)
+        button_layout.addWidget(self.analyze_investment_button)
+
+        layout.addLayout(button_layout)
 
         # Campo de exibição dos resultados
         self.result_display = QTextEdit(self)
@@ -78,8 +106,8 @@ class MainWindow(QMainWindow):
         footer_layout = QHBoxLayout()
         self.input_field = QLineEdit(self)
         self.input_field.setPlaceholderText("Digite sua pergunta para a Catelina Lacet...")
-        self.input_field.setStyleSheet("font-size: 16px; padding: 10px;")
-        self.input_field.setMinimumHeight(50)
+        self.input_field.setStyleSheet("font-size: 16px; padding: 20px; background-color: #A9A9A9;")  # Campo de input maior e fundo cinza
+        self.input_field.setMinimumHeight(80)  # Aumenta o tamanho do campo de input
 
         # Botão de envio dentro do campo de input
         send_button = QPushButton()
@@ -142,4 +170,9 @@ class MainWindow(QMainWindow):
         }
         receita_projetada = 15000
         resposta = self.gpt_service.analyze_costs(custos, receita_projetada)
+        self.result_display.setText(resposta)
+
+    def analyze_investments(self):
+        """Simula a análise de investimentos e exibe o resultado."""
+        resposta = self.gpt_service.analyze_investments()
         self.result_display.setText(resposta)
