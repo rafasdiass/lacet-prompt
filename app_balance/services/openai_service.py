@@ -15,13 +15,12 @@ client = OpenAI(api_key=openai_key)
 
 def analyze_data(prompt: str) -> str:
     """
-    Interage com a API do OpenAI para analisar dados com base no prompt fornecido
-    utilizando a interface da API ChatCompletion.
+    Interage com a API do OpenAI para analisar dados com base no prompt fornecido.
     Se falhar, retorna uma resposta simulada.
     """
     try:
         response = client.chat.completions.create(
-            model="gpt-4",  # ou "gpt-3.5-turbo"
+            model="gpt-4",
             messages=[{"role": "user", "content": prompt}],
             max_tokens=500,
             temperature=0.7
@@ -30,7 +29,6 @@ def analyze_data(prompt: str) -> str:
         return response.choices[0].message.content.strip()
     except Exception as e:
         return f"Erro ao comunicar com o OpenAI: {str(e)}"
-
 
 def simulate_analyze_data(prompt: str) -> str:
     """
