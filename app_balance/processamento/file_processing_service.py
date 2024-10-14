@@ -2,7 +2,7 @@ import os
 import pandas as pd
 import io
 from typing import Optional, Dict
-from PyPDF2 import PdfReader
+from pypdf import PdfReader
 from docx import Document
 import logging
 
