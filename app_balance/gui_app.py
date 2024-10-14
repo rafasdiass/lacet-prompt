@@ -13,30 +13,26 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtGui import QPixmap, QIcon
 import qtawesome
-from app_balance.services.text_processing import (
-    TextProcessingService,
-)
+from app_balance.services.text_processing import TextProcessingService
 from app_balance.processamento.file_processing_service import FileProcessingService
 from app_balance.users.user_preferences_service import UserPreferencesService
-from app_balance.services.catelina_lacet import (
-    CatelinaLacetGPT,
-)
+from app_balance.services.catelina_lacet import CatelinaLacetGPT
 
 
 class MainWindow(QMainWindow):
-    def __init__(self, usuario):  # Recebe o usuário como argumento
+    def __init__(self, usuario):
         super().__init__()
-        self.usuario = usuario  # Armazena o usuário
+        self.usuario = usuario
         self.setWindowTitle(f"Catelina Lacet - Bem-vindo, {self.usuario.nome}!")
         self.setGeometry(100, 100, 1000, 800)
 
         # Inicializando os serviços
         self.text_processor = TextProcessingService()  # Serviço para processar texto
         self.file_service = FileProcessingService()  # Serviço para processar arquivos
-        self.user_preferences_service = UserPreferencesService()
-        self.cateline_lacet_gpt = (
-            CatelinaLacetGPT()
-        )  # Serviço que devolve a resposta final
+        self.user_preferences_service = (
+            UserPreferencesService()
+        )  # Preferências do usuário
+        self.cateline_lacet_gpt = CatelinaLacetGPT()  # IA que devolve a resposta final
 
         # Variáveis para armazenar dados do usuário
         self.file_data = None
@@ -54,7 +50,7 @@ class MainWindow(QMainWindow):
     def setup_ui(self):
         layout = QVBoxLayout()
 
-        # Criar layout para o botão de mudança de humor e logo no topo
+        # Layout para o botão de mudança de humor e logo no topo
         top_layout = QHBoxLayout()
         top_layout.setSpacing(10)
         top_layout.addStretch()
@@ -93,7 +89,7 @@ class MainWindow(QMainWindow):
         self.result_display = QTextEdit()
         self.result_display.setReadOnly(True)
         self.result_display.setStyleSheet(
-            "background-color: #2E2E2E; color: white; font-size: 16px; padding: 10px;"
+            "background-color: #2E2E2E; color: #F9F3F3; font-size: 16px; padding: 10px;"
         )
         scroll_area.setWidget(self.result_display)
         layout.addWidget(scroll_area)
@@ -115,7 +111,7 @@ class MainWindow(QMainWindow):
         self.input_field.setMinimumHeight(60)
         input_layout.addWidget(self.input_field)
 
-        # Botão de enviar pergunta (agora como atributo da instância)
+        # Botão de enviar pergunta
         self.send_button = QPushButton()
         self.send_button.setIcon(QIcon(qtawesome.icon("fa.paper-plane", color="black")))
         self.send_button.setIconSize(QSize(30, 30))
@@ -125,7 +121,7 @@ class MainWindow(QMainWindow):
         self.send_button.clicked.connect(self.enviar_pergunta)
         input_layout.addWidget(self.send_button)
 
-        # Botão de upload de arquivo (agora como atributo da instância)
+        # Botão de upload de arquivo
         self.upload_button = QPushButton()
         self.upload_button.setIcon(QIcon(qtawesome.icon("fa.upload", color="black")))
         self.upload_button.setIconSize(QSize(30, 30))
@@ -218,7 +214,7 @@ class MainWindow(QMainWindow):
         """
         prompt = self.input_field.text()
         try:
-            # Apenas envia o texto para o TextProcessingService
+            # Enviar texto para o TextProcessingService
             analysis = self.text_processor.analyze_text(prompt)
 
             # Exibe a pergunta e o resultado da análise de texto
@@ -254,7 +250,7 @@ class MainWindow(QMainWindow):
                 with open(file_path, "rb") as f:
                     self.file_data = f.read()
 
-                # Apenas envia o arquivo para o FileProcessingService
+                # Enviar o arquivo para o FileProcessingService
                 self.file_service.processar_arquivo(self.file_data, file_type)
 
                 # Exibe a confirmação do upload
@@ -278,9 +274,7 @@ class MainWindow(QMainWindow):
 
     def get_dynamic_welcome_message(self):
         """Retorna uma mensagem de boas-vindas dinâmica com base no humor atual."""
-        humor = self.user_preferences_service.get_humor_atual(
-            self.usuario
-        )  # Passando o usuário carregado
+        humor = self.humores[self.humor_index]
         if humor == "sarcastico":
             return "Prepare-se para aprender mais sobre finanças... se é que você entende algo disso."
         elif humor == "compreensivo":

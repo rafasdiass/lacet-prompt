@@ -10,8 +10,11 @@ class CatelinaLacetGPT:
     Respostas são formuladas com base no humor e nas interações passadas.
     """
 
-    def __init__(self, tipo_humor: str = "padrao"):
+    def __init__(self, tipo_humor: str = "padrao", data_persistence_service=None):
         self.tipo_humor = tipo_humor
+        self.data_persistence_service = (
+            data_persistence_service  # Serviço de persistência de dados
+        )
         self.greeting_service = GreetingService()  # Instancia o serviço de saudações
         self.imdb = IMDb()  # Para buscar referências de filmes e cultura pop
         self.joke_provider = pyjokes  # Para gerar piadas baseadas em humor
@@ -32,16 +35,13 @@ class CatelinaLacetGPT:
         self.idade = 45  # Atributo embutido de idade
         self.profissao = "IA geek, arquiteta e mãe de pet"
 
-    def generate_response(
-        self, prompt: str, analysis: dict, financial_data=None
-    ) -> str:
+    def generate_response(self, prompt: str, analysis: dict) -> str:
         """
         Gera a resposta final para o prompt enviado, com base no que já foi processado (análise de texto ou finanças).
 
         Args:
             prompt (str): O prompt original enviado pelo usuário.
             analysis (dict): Resultado da análise pré-processada do TextProcessingService.
-            financial_data (dict, optional): Dados financeiros processados.
 
         Returns:
             str: Resposta gerada pela Catelina Lacet.
@@ -64,21 +64,16 @@ class CatelinaLacetGPT:
         if "herói" in prompt_lower or "personagem" in prompt_lower:
             return f"Meu herói favorito? Com certeza {random.choice(self.personalidades_favoritas)}! Eles sempre me inspiram a seguir em frente."
 
-        # Se for uma saudação, retorna uma resposta de saudação
-        if self.greeting_service.is_greeting(prompt):
-            return self.greeting_service.get_greeting_response(
-                analysis.get("sentiment", "NEUTRAL")
-            )
-
-        # Se for relacionado a finanças, retorna a resposta financeira
+        # Verifica se o prompt é sobre finanças e obtém dados do serviço de persistência
         if self.is_financial_prompt(analysis):
+            financial_data = self.data_persistence_service.get_latest_financial_data()
             if financial_data:
                 return self.formulate_financial_response(financial_data)
             else:
-                return "Estou pronta para ajudar com suas finanças! Envie-me os dados necessários."
+                return "Parece que ainda não tenho dados financeiros recentes para você. Envie-me suas finanças para análise!"
 
-        # Caso contrário, retorna uma resposta geral
-        return self.formulate_general_response(prompt, analysis)
+        # Caso a pergunta não faça sentido ou seja confusa
+        return self.formulate_generic_or_funny_response(prompt)
 
     def is_financial_prompt(self, analysis: dict) -> bool:
         """
@@ -126,23 +121,31 @@ class CatelinaLacetGPT:
 
         return resposta
 
-    def formulate_general_response(self, prompt: str, analysis: dict) -> str:
+    def formulate_generic_or_funny_response(self, prompt: str) -> str:
         """
-        Formula uma resposta geral baseada na análise do prompt, com humor e cultura pop.
+        Gera uma resposta genérica ou engraçada caso a pergunta seja confusa ou sem sentido.
 
         Args:
             prompt (str): O prompt original enviado pelo usuário.
-            analysis (dict): Análise pré-processada do prompt.
 
         Returns:
-            str: Resposta formulada de forma geral.
+            str: Uma resposta genérica ou engraçada.
         """
-        resposta = f"Sua pergunta foi sobre: {analysis.get('keywords', [])}\n"
+        generic_responses = [
+            "Hmm, isso me pegou de surpresa! O que você acha sobre o assunto?",
+            "Não sei se entendi bem, mas me parece algo interessante!",
+            "Essa pergunta me lembra um filme... já assistiu 'De Volta para o Futuro'?",
+            "Sabe, às vezes as melhores respostas são aquelas que encontramos dentro de nós. Ou talvez num filme do Star Wars.",
+        ]
 
-        # Adiciona uma piada ou uma referência de filme
+        funny_responses = [
+            f"Você disse '{prompt}'? Isso me lembrou uma piada! {self.joke_provider.get_joke()}",
+            "Olha, com essa pergunta confusa, até Marty McFly ficaria perdido no tempo!",
+            "Hmm, não sei bem como responder isso... que tal falarmos sobre filmes?",
+        ]
+
+        # Retorna uma resposta engraçada ou genérica dependendo do humor
         if self.tipo_humor == "sarcastico":
-            resposta += f"Ah, claro... {self.joke_provider.get_joke()}"
+            return random.choice(funny_responses)
         else:
-            resposta += f"Já assistiu {random.choice(self.filmes_favoritos)}? Pode ser uma boa distração!"
-
-        return resposta
+            return random.choice(generic_responses)
