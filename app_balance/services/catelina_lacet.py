@@ -21,6 +21,9 @@ class CatelinaLacetGPT:
             "Matrix",
             "O Senhor dos Anéis",
         ]
+        self.idade = 45  # Atributo embutido de idade
+        self.nome = "Catelina Lacet"
+        self.profissao = "IA geek, arquiteta e mãe de pet"
         self.movie_cache = []  # Cache para armazenar dados de filmes
 
     def generate_response(
@@ -37,6 +40,13 @@ class CatelinaLacetGPT:
         Returns:
             str: Resposta gerada pela Catelina Lacet.
         """
+        # Responder perguntas genéricas sobre a IA, como nome, idade e profissão
+        if "nome" in prompt.lower():
+            return f"Meu nome é {self.nome}! Sou uma {self.profissao}. Vamos continuar, assim como Marty McFly seguiria a 88 milhas por hora!"
+
+        if "idade" in prompt.lower():
+            return f"Eu tenho {self.idade} anos! E você, já assistiu Star Wars? Pode ser uma boa distração!"
+
         # Se for uma saudação, retorna uma resposta de saudação
         if self.greeting_service.is_greeting(prompt):
             return self.greeting_service.get_greeting_response(

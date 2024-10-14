@@ -15,12 +15,12 @@ from PyQt5.QtGui import QPixmap, QIcon
 import qtawesome
 from app_balance.services.text_processing import (
     TextProcessingService,
-)  # Primeira etapa de processamento
+)
 from app_balance.processamento.file_processing_service import FileProcessingService
 from app_balance.users.user_preferences_service import UserPreferencesService
 from app_balance.services.catelina_lacet import (
     CatelinaLacetGPT,
-)  # Serviço que devolve a resposta final
+)
 
 
 class MainWindow(QMainWindow):
@@ -100,7 +100,7 @@ class MainWindow(QMainWindow):
 
         # Primeira mensagem de boas-vindas da IA
         self.result_display.append(
-            f"<p style='color: yellow;'>Catelina Lacet: {self.get_dynamic_welcome_message()}</p>"
+            f"<p style='color: #E94560;'>Catelina Lacet: {self.get_dynamic_welcome_message()}</p>"
         )
 
         # Campo de input de texto
@@ -223,16 +223,13 @@ class MainWindow(QMainWindow):
 
             # Exibe a pergunta e o resultado da análise de texto
             self.result_display.append(f"<p style='color: cyan;'>Você: {prompt}</p>")
-            self.result_display.append(
-                f"<p style='color: yellow;'>Análise de Texto: {analysis}</p>"
-            )
 
             # Solicita a resposta final da Catelina Lacet
             resposta = self.cateline_lacet_gpt.generate_response(prompt, analysis)
 
             if resposta:
                 self.result_display.append(
-                    f"<p style='color: yellow;'>Catelina Lacet: {resposta}</p>"
+                    f"<p style='color: #E94560;'>Catelina Lacet: {resposta}</p>"
                 )
             else:
                 self.result_display.append(
@@ -275,7 +272,7 @@ class MainWindow(QMainWindow):
         self.humor_index = (self.humor_index + 1) % len(self.humores)
         humor_message = self.get_dynamic_welcome_message()
         self.result_display.append(
-            f"<p style='color: yellow;'>Catelina Lacet: {humor_message}</p>"
+            f"<p style='color: #E94560;'>Catelina Lacet: {humor_message}</p>"
         )
         self.humor_button.setIcon(self.get_humor_icon())
 
