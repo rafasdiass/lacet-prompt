@@ -1,10 +1,9 @@
-from transformers import pipeline
-import random
 from app_balance.services.text_processing import TextProcessingService
 from app_balance.services.greeting_service import GreetingService
 from app_balance.services.financial_analysis import FinancialAnalysisService
 from app_balance.services.file_processing_service import FileProcessingService
 from app_balance.services.advanced_financial_analysis import AdvancedFinancialAnalysisService
+import random
 from imdb import IMDb
 import pyjokes
 
@@ -25,57 +24,48 @@ class CatelinaLacetGPT:
         self.joke_provider = pyjokes  # Para gerar piadas baseadas em humor
         self.movie_cache = []
         self.filmes_favoritos = ["De Volta para o Futuro", "Star Wars", "Matrix", "O Senhor dos Anéis"]
-        # Usando transformers para responder perguntas gerais e interpretar qualquer tópico
-        self.qa_pipeline = pipeline("question-answering", model="distilbert-base-cased-distilled-squad")
 
-    def generate_response(self, prompt: str, file_data=None) -> str:
+    def generate_response(self, prompt: str, file_data=None, horas_trabalhadas=None) -> str:
         """
         Usa o processamento do TextProcessingService para interpretar o texto do prompt de forma natural
-        e toma decisões sobre como gerar uma resposta apropriada, sem depender de palavras-chave específicas.
+        e toma decisões sobre como gerar uma resposta apropriada.
         """
-        analysis = self.text_processor.process_prompt(prompt)  # Processamento do texto
+        # Processamos o prompt com o serviço de processamento de texto
+        analysis = self.text_processor.process_prompt(prompt)
 
-        # Se o prompt for uma saudação
+        # Se for uma saudação
         if self.text_processor.is_greeting(prompt):
             return self.greeting_service.get_greeting_response(analysis['sentiment'])
 
-        # Se for relacionado a finanças, redirecionar para o serviço correto
-        if any(keyword in ['finança', 'dinheiro', 'investimento', 'gastos', 'despesa', 'imposto', 'taxa', 'juros'] for keyword in analysis['keywords']):
-            if file_data:
-                return self.get_financial_analysis_response(file_data)
+        # Se for relacionado a finanças
+        if self.is_financial_prompt(analysis['keywords'], prompt):
+            if file_data and horas_trabalhadas:
+                return self.get_financial_analysis_response(file_data, horas_trabalhadas)
             else:
-                return "Por favor, envie um documento financeiro para análise."
+                return "Por favor, envie um arquivo financeiro e informe as horas trabalhadas para que eu possa calcular."
 
-        # Perguntas complexas ou tópicos fora de finanças e cultura pop, usar transformers
-        return self.answer_general_question(prompt)
+        # Se o prompt não for finanças ou saudação, responder com transformers
+        return self.text_processor.answer_with_transformers(prompt)
 
-    def get_financial_analysis_response(self, file_data) -> str:
+    def is_financial_prompt(self, keywords: list, prompt: str) -> bool:
         """
-        Processa o arquivo enviado para extrair dados financeiros reais e gerar uma análise detalhada.
+        Verifica se as palavras-chave do prompt estão relacionadas a finanças.
+        """
+        financial_keywords = ['finança', 'dinheiro', 'investimento', 'gastos', 'despesa', 'imposto', 'taxa', 'juros', 'renda', 'conta', 'lucro', 'ROI', 'ponto de equilíbrio']
+        return any(keyword in financial_keywords for keyword in keywords) or any(term in prompt.lower() for term in financial_keywords)
+
+    def get_financial_analysis_response(self, file_data, horas_trabalhadas: float) -> str:
+        """
+        Processa o arquivo enviado para extrair dados financeiros reais e gerar uma análise detalhada com base nas horas trabalhadas.
         """
         try:
-            # Processar o arquivo e extrair os dados
             financial_data = self.file_service.processar_arquivo(file_data, "excel")
-
-            # Extrair as informações necessárias para a análise
             custos = {'total_custos': financial_data['total_custos'], 'investimentos': financial_data.get('investimentos', 0)}
             receita_projetada = financial_data['receita_projetada']
-            valor_hora = 150.0  # Pode ser parametrizado se necessário
             categorias_custos = financial_data['categorias_custos']
 
-            # Gerar análise usando os dados reais extraídos
-            analise_financeira = self.financial_service.gerar_analise_detalhada(custos, receita_projetada, valor_hora, categorias_custos)
+            # Gerar análise usando os dados reais extraídos e as horas trabalhadas dinâmicas
+            analise_financeira = self.financial_service.gerar_analise_detalhada(custos, receita_projetada, horas_trabalhadas, categorias_custos)
             return analise_financeira
         except Exception as e:
             return f"Erro ao processar o arquivo: {str(e)}"
-
-    def answer_general_question(self, prompt: str) -> str:
-        """
-        Usa o modelo de transformers para responder a qualquer tipo de pergunta ou tópico.
-        """
-        context = """
-        Sou uma IA com vasto conhecimento em finanças, cultura pop, ciência e muito mais. 
-        Posso te ajudar com temas variados, desde orçamento pessoal até curiosidades sobre filmes e séries.
-        """
-        result = self.qa_pipeline(question=prompt, context=context)
-        return result['answer']

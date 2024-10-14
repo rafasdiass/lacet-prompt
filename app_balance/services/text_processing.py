@@ -2,6 +2,7 @@ import spacy
 from textblob import TextBlob, exceptions
 import nltk
 import re
+from transformers import pipeline
 
 # Baixar o recurso necessário para o TextBlob e nltk
 nltk.download('punkt')
@@ -11,6 +12,10 @@ nltk.download('averaged_perceptron_tagger')
 nlp = spacy.load("en_core_web_sm")
 
 class TextProcessingService:
+    def __init__(self):
+        # Inicializa o pipeline do transformers para perguntas e respostas gerais
+        self.qa_pipeline = pipeline("question-answering", model="distilbert-base-cased-distilled-squad")
+
     def clean_prompt(self, prompt: str) -> str:
         """
         Limpa o prompt removendo espaços extras e convertendo para minúsculas.
@@ -69,3 +74,14 @@ class TextProcessingService:
         """
         cleaned_prompt = self.clean_prompt(prompt)
         return self.analyze_text(cleaned_prompt)
+
+    def answer_with_transformers(self, prompt: str) -> str:
+        """
+        Usa o transformers para responder a perguntas gerais com base em conhecimento amplo.
+        """
+        context = """
+        Sou uma IA com vasto conhecimento em finanças, cultura pop, ciência e muito mais. 
+        Posso te ajudar com temas variados, desde orçamento pessoal até curiosidades sobre filmes e séries.
+        """
+        result = self.qa_pipeline(question=prompt, context=context)
+        return result['answer']
