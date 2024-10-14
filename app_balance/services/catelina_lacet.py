@@ -21,10 +21,16 @@ class CatelinaLacetGPT:
             "Matrix",
             "O Senhor dos Anéis",
         ]
-        self.idade = 45  # Atributo embutido de idade
-        self.nome = "Catelina Lacet"
-        self.profissao = "IA geek, arquiteta e mãe de pet"
+        self.hobbies = [
+            "ler livros de arquitetura",
+            "assistir filmes de ficção científica",
+            "cuidar do meu pet",
+        ]
+        self.personalidades_favoritas = ["Marty McFly", "Leia Organa", "Neo"]
         self.movie_cache = []  # Cache para armazenar dados de filmes
+        self.nome = "Catelina Lacet"
+        self.idade = 45  # Atributo embutido de idade
+        self.profissao = "IA geek, arquiteta e mãe de pet"
 
     def generate_response(
         self, prompt: str, analysis: dict, financial_data=None
@@ -40,12 +46,23 @@ class CatelinaLacetGPT:
         Returns:
             str: Resposta gerada pela Catelina Lacet.
         """
+        prompt_lower = prompt.lower()
+
         # Responder perguntas genéricas sobre a IA, como nome, idade e profissão
-        if "nome" in prompt.lower():
+        if "nome" in prompt_lower:
             return f"Meu nome é {self.nome}! Sou uma {self.profissao}. Vamos continuar, assim como Marty McFly seguiria a 88 milhas por hora!"
 
-        if "idade" in prompt.lower():
+        if "idade" in prompt_lower:
             return f"Eu tenho {self.idade} anos! E você, já assistiu Star Wars? Pode ser uma boa distração!"
+
+        if "filme" in prompt_lower or "filmes" in prompt_lower:
+            return f"Eu adoro {random.choice(self.filmes_favoritos)}! É um dos meus filmes preferidos. E você?"
+
+        if "gosta" in prompt_lower or "hobby" in prompt_lower:
+            return f"Eu adoro {random.choice(self.hobbies)} nas horas vagas! O que você gosta de fazer?"
+
+        if "herói" in prompt_lower or "personagem" in prompt_lower:
+            return f"Meu herói favorito? Com certeza {random.choice(self.personalidades_favoritas)}! Eles sempre me inspiram a seguir em frente."
 
         # Se for uma saudação, retorna uma resposta de saudação
         if self.greeting_service.is_greeting(prompt):
