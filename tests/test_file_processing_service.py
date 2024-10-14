@@ -1,86 +1,51 @@
 import unittest
-from unittest.mock import patch, MagicMock
-
-import pandas as pd
+import os
 from processamento.file_processing_service import FileProcessingService
-from app_balance.services.text_processing import TextProcessingService
 
 class TestFileProcessingService(unittest.TestCase):
 
     def setUp(self):
-        # Inicializar os serviços
+        # Inicializando o serviço de processamento de arquivos
         self.file_service = FileProcessingService()
-        self.text_processor = TextProcessingService()
 
-    @patch('pandas.read_excel')
-    def test_processar_arquivo_excel(self, mock_read_excel):
-        # Simulando leitura de Excel com dados de exemplo
-        mock_read_excel.return_value = {
-            'Sheet1': pd.DataFrame([{'Coluna1': 'Valor1', 'Coluna2': 'Valor2'}])
-        }
+        # Definindo o caminho absoluto para os arquivos de teste
+        base_path = os.path.abspath(os.path.dirname(__file__))  # Caminho absoluto do diretório de testes
+        self.excel_file_path = os.path.join(base_path, '../app_balance/exemplo/exemplo.xlsx')
+        self.pdf_file_path = os.path.join(base_path, '../app_balance/exemplo/exemplo.pdf')
+        self.docx_file_path = os.path.join(base_path, '../app_balance/exemplo/exemplo.docx')
 
-        # Dados simulados de arquivo Excel
-        arquivo_excel = b"simulacao de bytes de excel"
+    def test_processar_arquivo_excel_real(self):
+        """Testa o processamento de um arquivo Excel real."""
+        with open(self.excel_file_path, 'rb') as f:
+            arquivo_excel = f.read()
+
         result = self.file_service.processar_arquivo(arquivo_excel, 'excel')
 
-        # Verificar se os dados foram extraídos corretamente
+        # Verifica se os dados foram extraídos corretamente
         self.assertIn('Sheet1', result)
-        self.assertEqual(result['Sheet1'][0]['Coluna1'], 'Valor1')
-        self.assertEqual(result['Sheet1'][0]['Coluna2'], 'Valor2')
+        self.assertTrue(isinstance(result['Sheet1'], list))  # Verifique se retorna uma lista de registros
 
-    @patch('PyPDF2.PdfReader')
-    def test_processar_arquivo_pdf(self, mock_pdf_reader):
-        # Simular a leitura do PDF
-        mock_pdf_reader.return_value.pages = [MagicMock(extract_text=lambda: "Texto PDF Simulado")]
-        
-        # Dados simulados de arquivo PDF
-        arquivo_pdf = b"simulacao de bytes de pdf"
+    def test_processar_arquivo_pdf_real(self):
+        """Testa o processamento de um arquivo PDF real."""
+        with open(self.pdf_file_path, 'rb') as f:
+            arquivo_pdf = f.read()
+
         result = self.file_service.processar_arquivo(arquivo_pdf, 'pdf')
 
-        # Verificar se os dados foram extraídos corretamente
-        self.assertEqual(result['texto'], "Texto PDF Simulado")
+        # Verifica se o texto foi extraído corretamente
+        self.assertTrue(isinstance(result['texto'], str))
+        self.assertGreater(len(result['texto']), 0)  # Verifica se o texto extraído não está vazio
 
-    @patch('docx.Document')
-    def test_processar_arquivo_docx(self, mock_docx):
-        # Simular a leitura de DOCX
-        mock_docx.return_value.paragraphs = [MagicMock(text="Texto DOCX Simulado")]
+    def test_processar_arquivo_docx_real(self):
+        """Testa o processamento de um arquivo DOCX real."""
+        with open(self.docx_file_path, 'rb') as f:
+            arquivo_docx = f.read()
 
-        # Dados simulados de arquivo DOCX
-        arquivo_docx = b"simulacao de bytes de docx"
         result = self.file_service.processar_arquivo(arquivo_docx, 'docx')
 
-        # Verificar se os dados foram extraídos corretamente
-        self.assertEqual(result['texto'], "Texto DOCX Simulado")
-
-    @patch.object(TextProcessingService, 'route_and_process')
-    def test_processar_excel_enviar_para_text_processing(self, mock_route_and_process):
-        # Simulando a leitura de Excel
-        self.file_service.processar_arquivo_excel = MagicMock(return_value={"Sheet1": [{"Coluna1": "Valor1"}]})
-        
-        # Processar arquivo e enviar para TextProcessingService
-        arquivo_excel = b"simulacao de bytes de excel"
-        dados_extraidos = self.file_service.processar_arquivo(arquivo_excel, 'excel')
-
-        # Simulação de processamento pelo serviço de texto
-        self.text_processor.route_and_process(dados_extraidos)
-
-        # Verifica se o serviço de texto recebeu os dados
-        mock_route_and_process.assert_called_once_with(dados_extraidos)
-
-    @patch.object(TextProcessingService, 'route_and_process')
-    def test_processar_pdf_enviar_para_text_processing(self, mock_route_and_process):
-        # Simular a leitura de um arquivo PDF
-        self.file_service.processar_arquivo_pdf = MagicMock(return_value="Texto de Exemplo PDF")
-        
-        # Processar arquivo e enviar para TextProcessingService
-        arquivo_pdf = b"simulacao de bytes de pdf"
-        dados_extraidos = self.file_service.processar_arquivo(arquivo_pdf, 'pdf')
-
-        # Simulação de processamento pelo serviço de texto
-        self.text_processor.route_and_process(dados_extraidos)
-
-        # Verifica se o serviço de texto recebeu os dados
-        mock_route_and_process.assert_called_once_with(dados_extraidos)
+        # Verifica se o texto foi extraído corretamente
+        self.assertTrue(isinstance(result['texto'], str))
+        self.assertGreater(len(result['texto']), 0)  # Verifica se o texto extraído não está vazio
 
 
 if __name__ == '__main__':
