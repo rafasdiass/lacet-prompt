@@ -50,19 +50,20 @@ class MainWindow(QMainWindow):
     def setup_ui(self):
         layout = QVBoxLayout()
 
-        # Layout para o botão de mudança de humor e logo no topo
+        # Layout para o botão de mudança de humor, logo, e imagem cath.png
         top_layout = QHBoxLayout()
         top_layout.setSpacing(10)
-        top_layout.addStretch()
 
-        # Logo no topo
-        self.logo = QLabel()
-        pixmap = QPixmap("assets/LOGO-BRANCA.PNG")
-        self.logo.setPixmap(pixmap)
-        self.logo.setAlignment(Qt.AlignLeft)
-        self.logo.setFixedSize(120, 40)
-        self.logo.setScaledContents(True)
-        top_layout.addWidget(self.logo, alignment=Qt.AlignLeft)
+        # Imagem cath.png no canto esquerdo
+        self.cath_image = QLabel()
+        pixmap_cath = QPixmap("assets/img/cath.png")
+        self.cath_image.setPixmap(pixmap_cath)
+        self.cath_image.setFixedSize(40, 40)  # Reduzida para 40x40
+        self.cath_image.setScaledContents(True)
+        top_layout.addWidget(self.cath_image, alignment=Qt.AlignLeft)
+
+        # Adiciona um espaço flexível para empurrar os outros widgets para a direita
+        top_layout.addStretch()
 
         # Botão de mudar o humor
         self.humor_button = QPushButton()
@@ -79,8 +80,21 @@ class MainWindow(QMainWindow):
         """
         )
         self.humor_button.clicked.connect(self.cycle_humor)
+
+        # Adiciona o botão ao layout, à direita
         top_layout.addWidget(self.humor_button, alignment=Qt.AlignRight)
 
+        # Logo no canto direito
+        self.logo = QLabel()
+        pixmap_logo = QPixmap("assets/LOGO-BRANCA.PNG")
+        self.logo.setPixmap(pixmap_logo)
+        self.logo.setFixedSize(120, 40)
+        self.logo.setScaledContents(True)
+
+        # Adiciona a logo ao layout, à direita, após o botão
+        top_layout.addWidget(self.logo, alignment=Qt.AlignRight)
+
+        # Adiciona o layout superior ao layout principal
         layout.addLayout(top_layout)
 
         # Área de texto de conversas com rolagem
@@ -137,6 +151,7 @@ class MainWindow(QMainWindow):
         central_widget = QWidget()
         central_widget.setLayout(layout)
         self.setCentralWidget(central_widget)
+
 
     def apply_styles(self):
         """

@@ -4,6 +4,7 @@ import numpy as np
 import datetime
 from typing import Dict
 
+
 class AdvancedFinancialAnalysisService:
     """
     Serviço avançado para realizar análises financeiras com dados de mercado,
@@ -13,7 +14,9 @@ class AdvancedFinancialAnalysisService:
 
     def __init__(self, start_date=None, end_date=None):
         # Definir datas de análise (últimos 6 meses por padrão)
-        self.start_date = start_date or (datetime.datetime.now() - datetime.timedelta(days=180))
+        self.start_date = start_date or (
+            datetime.datetime.now() - datetime.timedelta(days=180)
+        )
         self.end_date = end_date or datetime.datetime.now()
 
     def get_market_data(self, ticker: str) -> pd.DataFrame:
@@ -39,24 +42,31 @@ class AdvancedFinancialAnalysisService:
             pd.DataFrame: DataFrame com os indicadores técnicos adicionados.
         """
         # Calculando média móvel simples (SMA) de 50 dias
-        market_data['SMA_50'] = market_data['Close'].rolling(window=50).mean()
+        market_data["SMA_50"] = market_data["Close"].rolling(window=50).mean()
 
         # Calculando o Índice de Força Relativa (RSI)
-        delta = market_data['Close'].diff()
+        delta = market_data["Close"].diff()
         gain = (delta.where(delta > 0, 0)).rolling(window=14).mean()
         loss = (-delta.where(delta < 0, 0)).rolling(window=14).mean()
         rs = gain / loss
-        market_data['RSI'] = 100 - (100 / (1 + rs))
+        market_data["RSI"] = 100 - (100 / (1 + rs))
 
         # Calculando o MACD (diferença entre a média móvel de 12 e 26 dias)
-        market_data['EMA_12'] = market_data['Close'].ewm(span=12, adjust=False).mean()
-        market_data['EMA_26'] = market_data['Close'].ewm(span=26, adjust=False).mean()
-        market_data['MACD'] = market_data['EMA_12'] - market_data['EMA_26']
-        market_data['MACD_signal'] = market_data['MACD'].ewm(span=9, adjust=False).mean()
+        market_data["EMA_12"] = market_data["Close"].ewm(span=12, adjust=False).mean()
+        market_data["EMA_26"] = market_data["Close"].ewm(span=26, adjust=False).mean()
+        market_data["MACD"] = market_data["EMA_12"] - market_data["EMA_26"]
+        market_data["MACD_signal"] = (
+            market_data["MACD"].ewm(span=9, adjust=False).mean()
+        )
 
         return market_data
 
-    def simulate_investment(self, initial_investment: float, market_data: pd.DataFrame, taxa_imposto: float = 0.15) -> float:
+    def simulate_investment(
+        self,
+        initial_investment: float,
+        market_data: pd.DataFrame,
+        taxa_imposto: float = 0.15,
+    ) -> float:
         """
         Simula um investimento com base nos dados históricos de mercado, aplicando imposto.
         Args:
@@ -67,8 +77,8 @@ class AdvancedFinancialAnalysisService:
             float: Valor final do investimento após o período com impostos aplicados.
         """
         # Preço inicial e final para cálculo do retorno
-        start_price = market_data['Close'].iloc[0]
-        end_price = market_data['Close'].iloc[-1]
+        start_price = market_data["Close"].iloc[0]
+        end_price = market_data["Close"].iloc[-1]
 
         # Calcula o retorno do investimento
         investment_return = (end_price - start_price) / start_price
