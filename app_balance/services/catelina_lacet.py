@@ -3,21 +3,29 @@ from imdb import IMDb
 import pyjokes
 from app_balance.services.greeting_service import GreetingService
 
+
 class CatelinaLacetGPT:
     """
     IA simpática e bem-humorada que interpreta dados e os responde, sem processar nada diretamente.
     Respostas são formuladas com base no humor e nas interações passadas.
     """
 
-    def __init__(self, tipo_humor: str = 'padrao'):
+    def __init__(self, tipo_humor: str = "padrao"):
         self.tipo_humor = tipo_humor
         self.greeting_service = GreetingService()  # Instancia o serviço de saudações
         self.imdb = IMDb()  # Para buscar referências de filmes e cultura pop
         self.joke_provider = pyjokes  # Para gerar piadas baseadas em humor
-        self.filmes_favoritos = ["De Volta para o Futuro", "Star Wars", "Matrix", "O Senhor dos Anéis"]
+        self.filmes_favoritos = [
+            "De Volta para o Futuro",
+            "Star Wars",
+            "Matrix",
+            "O Senhor dos Anéis",
+        ]
         self.movie_cache = []  # Cache para armazenar dados de filmes
 
-    def generate_response(self, prompt: str, analysis: dict, financial_data=None) -> str:
+    def generate_response(
+        self, prompt: str, analysis: dict, financial_data=None
+    ) -> str:
         """
         Gera a resposta final para o prompt enviado, com base no que já foi processado (análise de texto ou finanças).
 
@@ -31,7 +39,9 @@ class CatelinaLacetGPT:
         """
         # Se for uma saudação, retorna uma resposta de saudação
         if self.greeting_service.is_greeting(prompt):
-            return self.greeting_service.get_greeting_response(analysis.get('sentiment', 'NEUTRAL'))
+            return self.greeting_service.get_greeting_response(
+                analysis.get("sentiment", "NEUTRAL")
+            )
 
         # Se for relacionado a finanças, retorna a resposta financeira
         if self.is_financial_prompt(analysis):
@@ -53,7 +63,7 @@ class CatelinaLacetGPT:
         Returns:
             bool: Verdadeiro se o prompt for financeiro, falso caso contrário.
         """
-        return 'finance' in analysis.get('categories', [])
+        return "finance" in analysis.get("categories", [])
 
     def formulate_financial_response(self, financial_data: dict) -> str:
         """
@@ -65,9 +75,9 @@ class CatelinaLacetGPT:
         Returns:
             str: Resposta com análise financeira.
         """
-        receita = financial_data.get('receita_projetada', 0)
-        custos = financial_data.get('total_custos', 0)
-        categorias = financial_data.get('categorias_custos', {})
+        receita = financial_data.get("receita_projetada", 0)
+        custos = financial_data.get("total_custos", 0)
+        categorias = financial_data.get("categorias_custos", {})
 
         # Formula a resposta financeira
         resposta = f"Receita projetada: R$ {receita:.2f}\n"
@@ -78,10 +88,14 @@ class CatelinaLacetGPT:
             resposta += f"- {categoria}: R$ {valor:.2f}\n"
 
         # Adiciona uma frase de humor, dependendo do humor atual da IA
-        if self.tipo_humor == 'sarcastico':
-            resposta += "\nEspero que você tenha algo sobrando depois desses gastos todos!"
-        elif self.tipo_humor == 'compreensivo':
-            resposta += "\nNão se preocupe, vamos superar esses desafios financeiros juntos."
+        if self.tipo_humor == "sarcastico":
+            resposta += (
+                "\nEspero que você tenha algo sobrando depois desses gastos todos!"
+            )
+        elif self.tipo_humor == "compreensivo":
+            resposta += (
+                "\nNão se preocupe, vamos superar esses desafios financeiros juntos."
+            )
 
         return resposta
 
@@ -99,7 +113,7 @@ class CatelinaLacetGPT:
         resposta = f"Sua pergunta foi sobre: {analysis.get('keywords', [])}\n"
 
         # Adiciona uma piada ou uma referência de filme
-        if self.tipo_humor == 'sarcastico':
+        if self.tipo_humor == "sarcastico":
             resposta += f"Ah, claro... {self.joke_provider.get_joke()}"
         else:
             resposta += f"Já assistiu {random.choice(self.filmes_favoritos)}? Pode ser uma boa distração!"
