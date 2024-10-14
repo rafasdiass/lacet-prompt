@@ -124,5 +124,106 @@ Caso precise de ajuda ou tenha alguma dúvida, entre em contato através do e-ma
 
 ---
 
+Aqui está o fluxo completo, unificado e contínuo, baseado em um único prompt, mostrando todas as partes interligadas desde o estímulo inicial até a persistência dos dados e exibição dos resultados:
+
+---
+
+### 1. **GUI (gui_app.py) — Estímulo**
+   - **Responsabilidade**: Captura a interação inicial do usuário (entrada de texto ou arquivo).
+   - **Exemplo de Prompt**: O usuário digita "Me fale sobre análise financeira avançada" ou envia um arquivo Excel para processamento.
+   - **Ação**: O GUI envia o input (prompt ou arquivo) para o `TextProcessingService` para ser processado.
+
+   ```
+   GUI (Input: "Me fale sobre análise financeira avançada" ou arquivo Excel) ===> Envia para o processamento no TextProcessingService
+   ```
+
+### 2. **TextProcessingService (processamento de texto) — Tálamo**
+   - **Responsabilidade**: Processa o input do usuário e decide qual rota seguir com base na análise do conteúdo.
+   - **Exemplo de Ação**: O `TextProcessingService` realiza a limpeza do texto, analisa o conteúdo usando TextBlob e Spacy, e determina que o prompt é relacionado a análise financeira avançada.
+   - **Saída**: A rota definida é "advanced_financial", indicando que o `AdvancedFinancialAnalysisService` será chamado.
+
+   ```
+   TextProcessingService ===> Limpa o texto ===> Analisa o texto (com TextBlob/Spacy) ===> Rota definida: "advanced_financial"
+   ```
+
+### 3. **Análise de Dados — Análise Especializada**
+   - **Responsabilidade**: Realiza a análise específica com base na rota decidida.
+     - Se for um "greeting", o `GreetingService` responde com uma saudação.
+     - Se for uma "piada", o `JokeService` responde com uma piada.
+     - Se for "financial", o `FinancialAnalysisService` executa uma análise financeira simples.
+     - Se for "advanced_financial", o `AdvancedFinancialAnalysisService` realiza uma análise financeira mais profunda.
+   - **Exemplo de Ação**: O `AdvancedFinancialAnalysisService` realiza uma análise completa dos custos, receitas, e ROI, e gera um relatório detalhado.
+   - **Saída**: Um relatório financeiro detalhado sobre análise financeira avançada.
+
+   ```
+   Rota: "advanced_financial" ===> AdvancedFinancialAnalysisService ===> Realiza análise detalhada (custos, ROI, etc.) ===> Gera relatório financeiro
+   ```
+
+### 4. **DataPersistenceService (Memória) — Armazenamento no Banco de Dados**
+   - **Responsabilidade**: Persistir os dados gerados no banco de dados, incluindo o prompt e o resultado da análise.
+   - **Exemplo de Ação**: Após a geração do relatório financeiro, o `DataPersistenceService` recebe tanto o prompt original quanto o relatório gerado pelo `AdvancedFinancialAnalysisService`. Ele então salva esses dados nas tabelas apropriadas no banco de dados (por exemplo, na tabela de `Prompts` e `GPT4Responses`).
+   - **Saída**: O prompt e o relatório financeiro são salvos com sucesso no banco de dados.
+
+   ```
+   Decisão final ===> DataPersistenceService ===> Salva no banco de dados (prompt: "Me fale sobre análise financeira avançada" + relatório gerado)
+   ```
+
+### 5. **Exibição dos Resultados — Feedback ao Usuário**
+   - **Responsabilidade**: Exibir o resultado da análise para o usuário de maneira amigável.
+   - **Exemplo de Ação**: O GUI recebe o relatório financeiro gerado pelo `AdvancedFinancialAnalysisService` e apresenta o relatório de forma clara ao usuário.
+   - **Saída**: O usuário vê o relatório completo com os detalhes da análise financeira.
+
+   ```
+   Resultado final ===> Exibe no GUI ===> O usuário vê o relatório financeiro avançado
+   ```
+
+---
+
+### **Fluxo Completo (Em uma linha contínua):**
+
+1. **GUI (Estimulo)**: O usuário insere o texto "Me fale sobre análise financeira avançada" ou envia um arquivo Excel. O GUI captura essa interação e envia o input para o `TextProcessingService`.
+
+   ```
+   GUI (Input: "Me fale sobre análise financeira avançada") ===> TextProcessingService
+   ```
+
+2. **TextProcessingService (Tálamo)**: O texto é limpo e analisado com ferramentas como TextBlob e Spacy. O serviço então decide que o prompt está relacionado a uma análise financeira avançada e direciona para o `AdvancedFinancialAnalysisService`.
+
+   ```
+   TextProcessingService ===> Rota definida: "advanced_financial"
+   ```
+
+3. **Análise Especializada (Análise Financeira Avançada)**: O `AdvancedFinancialAnalysisService` realiza uma análise financeira detalhada com base nos custos, receitas, e outros parâmetros, e gera um relatório.
+
+   ```
+   AdvancedFinancialAnalysisService ===> Gera relatório financeiro detalhado
+   ```
+
+4. **DataPersistenceService (Memória)**: Após a análise, o `DataPersistenceService` persiste tanto o prompt original quanto o relatório gerado no banco de dados para garantir que todas as interações e resultados estão armazenados corretamente.
+
+   ```
+   DataPersistenceService ===> Salva prompt e relatório no banco de dados
+   ```
+
+5. **Exibição dos Resultados**: Finalmente, o GUI exibe o relatório gerado ao usuário, mostrando os resultados da análise de forma clara e amigável.
+
+   ```
+   GUI ===> Exibe relatório financeiro ao usuário
+   ```
+
+---
+
+### **Resumo:**
+
+- O fluxo começa com o **usuário inserindo um texto ou arquivo** no GUI.
+- Esse input passa pelo **TextProcessingService**, que atua como o "tálamo" para decidir a rota correta com base na análise do texto.
+- Dependendo da rota decidida, o serviço específico (como análise financeira) é chamado para realizar a **análise especializada**.
+- Após a análise, os resultados são **persistidos no banco de dados**.
+- Por fim, os resultados são **exibidos ao usuário**.
+
+---
+
+Esse guia agora reflete o fluxo contínuo e modular da aplicação, levando em consideração os componentes-chave como o processamento de texto (tálamo), análise especializada e persistência de dados.
+
 
 

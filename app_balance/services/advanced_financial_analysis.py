@@ -66,10 +66,18 @@ class AdvancedFinancialAnalysisService:
         Returns:
             float: Valor final do investimento após o período com impostos aplicados.
         """
+        # Preço inicial e final para cálculo do retorno
         start_price = market_data['Close'].iloc[0]
         end_price = market_data['Close'].iloc[-1]
+
+        # Calcula o retorno do investimento
         investment_return = (end_price - start_price) / start_price
         ganho_bruto = initial_investment * (1 + investment_return)
+
+        # Calcula o imposto sobre o ganho de capital
         imposto = (ganho_bruto - initial_investment) * taxa_imposto
+
+        # Valor final após imposto
         final_value = ganho_bruto - imposto
+
         return final_value

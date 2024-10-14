@@ -1,7 +1,7 @@
 from app_balance.services.text_processing import TextProcessingService
 from app_balance.services.greeting_service import GreetingService
 from app_balance.services.financial_analysis import FinancialAnalysisService
-from app_balance.services.file_processing_service import FileProcessingService
+from processamento.file_processing_service import FileProcessingService
 from app_balance.services.advanced_financial_analysis import AdvancedFinancialAnalysisService
 import random
 from imdb import IMDb

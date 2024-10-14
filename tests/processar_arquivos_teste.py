@@ -7,7 +7,7 @@ import os
 # Adiciona o diretório raiz do projeto ao caminho para permitir a importação de módulos.
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'app_balance')))
 
-from services.file_processing_service import processar_arquivo
+from processamento.file_processing_service import processar_arquivo
 
 # Caminho para a pasta de exemplos dentro de app_balance
 pasta_exemplos = os.path.join(os.path.dirname(__file__), '..', 'app_balance', 'exemplo')

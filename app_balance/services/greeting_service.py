@@ -1,14 +1,22 @@
 class GreetingService:
-    def __init__(self, catelina_lacet):
-        self.catelina_lacet = catelina_lacet
+    def __init__(self):
+        # Não requer nenhum parâmetro externo
+        pass
+
+    def is_greeting(self, prompt: str) -> bool:
+        """
+        Verifica se o prompt é uma saudação simples.
+        """
+        greetings = ['olá', 'oi', 'bom dia', 'boa tarde', 'boa noite', 'hello', 'hi']
+        return any(greet in prompt.lower() for greet in greetings)
 
     def get_greeting_response(self, sentiment: str) -> str:
         """
-        Retorna uma saudação personalizada com base no sentimento do prompt.
+        Retorna uma resposta apropriada para a saudação com base no sentimento.
         """
         if sentiment == 'POSITIVE':
-            return f"Olá! Estou aqui para te ajudar! {self.catelina_lacet.tipo_humor.capitalize()} como sempre!"
+            return "Olá! Que bom te ver animado! Como posso te ajudar?"
         elif sentiment == 'NEGATIVE':
-            return f"Ei, não se preocupe! Vamos superar isso. Estou aqui para te apoiar."
+            return "Oi, parece que você não está em um ótimo dia. Como posso ajudar a melhorar?"
         else:
-            return f"Oi! Como posso ajudar? Estou pronta para tudo."
+            return "Olá! Como posso te ajudar hoje?"

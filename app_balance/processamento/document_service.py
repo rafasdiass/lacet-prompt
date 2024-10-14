@@ -8,7 +8,6 @@ import os
 from PyPDF2 import PdfReader
 from docx import Document
 
-
 class DocumentService:
     """
     Serviço para ler e processar documentos PDF e DOCX.
