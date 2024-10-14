@@ -2,14 +2,9 @@ import spacy
 from textblob import TextBlob
 from transformers import pipeline
 import logging
-import nltk
 
 # Configurar logging
 logging.basicConfig(level=logging.INFO)
-
-# Baixar recursos para TextBlob e nltk
-nltk.download('punkt', quiet=True)
-nltk.download('averaged_perceptron_tagger', quiet=True)
 
 # Carregar modelo do Spacy e Transformers
 nlp = spacy.load("en_core_web_sm")
@@ -18,28 +13,28 @@ classifier = pipeline('sentiment-analysis')
 
 class TextProcessingService:
     """
-    Serviço responsável por analisar o texto do prompt e determinar a rota apropriada com base em palavras-chave.
+    Serviço responsável por processar textos e dados extraídos, interpretar linguagem natural, e decidir a rota apropriada.
     """
 
     def __init__(self):
         pass
 
-    def clean_prompt(self, prompt: str) -> str:
+    def clean_text(self, text: str) -> str:
         """
-        Limpa o prompt removendo caracteres especiais e números.
+        Limpa o texto removendo caracteres especiais e números.
         """
         import re
-        prompt = re.sub(r'[^a-zA-Z\s]', '', prompt)
-        return prompt.strip().lower()
+        text = re.sub(r'[^a-zA-Z\s]', '', text)
+        return text.strip().lower()
 
-    def analyze_text(self, prompt: str) -> dict:
+    def analyze_text(self, text: str) -> dict:
         """
-        Analisa o texto do prompt usando TextBlob, Spacy e Transformers.
+        Analisa o texto usando TextBlob, Spacy e Transformers.
         """
         try:
-            blob = TextBlob(prompt)
-            doc = nlp(prompt)
-            sentiment = classifier(prompt)
+            blob = TextBlob(text)
+            doc = nlp(text)
+            sentiment = classifier(text)
 
             return {
                 'keywords': list(set(blob.noun_phrases)),
@@ -57,29 +52,55 @@ class TextProcessingService:
                 'error': str(e)
             }
 
-    def decide_route(self, prompt: str, analysis: dict) -> str:
+    def process_data_from_file(self, data: dict) -> dict:
         """
-        Decide a rota com base na análise do texto.
+        Processa os dados extraídos de arquivos e os converte para um formato adequado para análise de texto.
+        Args:
+            data (dict): Dicionário com categorias, valores e outros dados extraídos de arquivos.
+
+        Returns:
+            dict: Análise de texto e palavras-chave derivadas dos dados do arquivo.
         """
-        if 'finança' in analysis['keywords'] or 'dinheiro' in analysis['keywords']:
-            return 'financial' if 'avançada' not in prompt else 'advanced_financial'
-        elif 'piada' in analysis['keywords']:
+        text_representation = ' '.join([f"{cat} {val}" for cat, val in data['categorias_custos'].items()])
+        return self.analyze_text(text_representation)
+
+    def decide_route(self, analysis: dict) -> str:
+        """
+        Decide a rota com base na análise do texto ou dados.
+        Args:
+            analysis (dict): Dicionário com análise de palavras-chave, sentimentos e entidades.
+
+        Returns:
+            str: Rota decidida com base nas palavras-chave e dados.
+        """
+        keywords = analysis.get('keywords', [])
+
+        if any(keyword in ['finança', 'dinheiro'] for keyword in keywords):
+            return 'financial'
+        elif 'piada' in keywords:
             return 'joke'
         else:
             return 'general'
 
-    def route_and_process(self, prompt: str) -> str:
+    def route_and_process(self, input_data: dict) -> str:
         """
-        Processa o prompt, realiza a análise de texto, e decide qual rota seguir.
+        Processa tanto textos fornecidos diretamente pelo input do usuário quanto dados extraídos de arquivos.
 
         Args:
-            prompt: Texto do prompt.
+            input_data (dict): Pode ser um texto ou dados extraídos de arquivos.
 
         Returns:
-            str: Rota decidida com base na análise do prompt.
+            str: Rota decidida com base na análise.
         """
-        cleaned_prompt = self.clean_prompt(prompt)
-        analysis = self.analyze_text(cleaned_prompt)
-        route = self.decide_route(cleaned_prompt, analysis)
-        logging.info(f"Rota: {route}")
+        if isinstance(input_data, str):
+            # Se a entrada for texto, processa como texto
+            cleaned_text = self.clean_text(input_data)
+            analysis = self.analyze_text(cleaned_text)
+        else:
+            # Se for um dicionário, processa como dados de arquivo
+            analysis = self.process_data_from_file(input_data)
+
+        # Decide a rota com base na análise
+        route = self.decide_route(analysis)
+        logging.info(f"Rota decidida: {route}")
         return route

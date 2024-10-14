@@ -5,7 +5,7 @@ import qtawesome
 from app_balance.services.text_processing import TextProcessingService  # Primeira etapa de processamento
 from processamento.file_processing_service import FileProcessingService
 from users.user_preferences_service import UserPreferencesService
-from app_balance.services.catelina_lacet import CatelinaLacetGPT  # Serviço que toma a decisão final
+from app_balance.services.catelina_lacet import CatelinaLacetGPT  # Serviço que devolve a resposta final
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -15,10 +15,10 @@ class MainWindow(QMainWindow):
         self.setStyleSheet("background-color: #000000; color: #EDEDED; font-family: 'Arial', sans-serif;")
 
         # Inicializando os serviços
-        self.text_processor = TextProcessingService()  # Primeiro processador de texto
-        self.file_service = FileProcessingService()
+        self.text_processor = TextProcessingService()  # Serviço para processar texto
+        self.file_service = FileProcessingService()  # Serviço para processar arquivos
         self.user_preferences_service = UserPreferencesService()
-        self.cateline_lacet_gpt = CatelinaLacetGPT()  # Serviço que toma a decisão com base no texto processado
+        self.cateline_lacet_gpt = CatelinaLacetGPT()  # Serviço que devolve a resposta final
 
         # Variáveis para armazenar dados do usuário
         self.file_data = None
@@ -102,29 +102,6 @@ class MainWindow(QMainWindow):
 
         layout.addLayout(input_layout)
 
-        # Botões de análise de custos e análise financeira
-        analysis_layout = QHBoxLayout()
-
-        # Botão de análise de custos
-        self.analyze_cost_button = QPushButton("Análise de Custos")
-        self.analyze_cost_button.setStyleSheet("background-color: #C0C0C0; border-radius: 8px;")
-        self.analyze_cost_button.setIcon(QIcon(qtawesome.icon('fa.money', color='black')))
-        self.analyze_cost_button.setIconSize(QSize(30, 30))
-        self.analyze_cost_button.clicked.connect(self.analyze_cost)
-        self.analyze_cost_button.setEnabled(False)
-        analysis_layout.addWidget(self.analyze_cost_button)
-
-        # Botão de análise financeira
-        self.analyze_financial_button = QPushButton("Análise Financeira")
-        self.analyze_financial_button.setStyleSheet("background-color: #C0C0C0; border-radius: 8px;")
-        self.analyze_financial_button.setIcon(QIcon(qtawesome.icon('fa.line-chart', color='black')))
-        self.analyze_financial_button.setIconSize(QSize(30, 30))
-        self.analyze_financial_button.clicked.connect(self.analyze_financial)
-        self.analyze_financial_button.setEnabled(False)
-        analysis_layout.addWidget(self.analyze_financial_button)
-
-        layout.addLayout(analysis_layout)
-
         # Definir o widget central
         central_widget = QWidget()
         central_widget.setLayout(layout)
@@ -132,23 +109,19 @@ class MainWindow(QMainWindow):
 
     def enviar_pergunta(self):
         """
-        Envia a pergunta para o processamento e gera uma resposta baseada na análise de texto.
+        Envia a pergunta para o TextProcessingService, e depois recebe a resposta final do Catelina Lacet.
         """
         prompt = self.input_field.text()
         try:
-            # Primeiro envia o prompt para o processamento de texto
+            # Apenas envia o texto para o TextProcessingService
             analysis = self.text_processor.process_prompt(prompt)
 
             # Exibe a pergunta e o resultado da análise de texto
             self.result_display.append(f"<p style='color: cyan;'>Você: {prompt}</p>")
             self.result_display.append(f"<p style='color: yellow;'>Análise de Texto: {analysis}</p>")
 
-            # Verifica se é uma saudação ou uma pergunta relacionada a finanças
-            if self.text_processor.is_greeting(prompt):
-                resposta = self.get_greeting_response(analysis)
-            else:
-                # Continue com a lógica de finanças se palavras-chave estiverem presentes
-                resposta = self.cateline_lacet_gpt.generate_response(prompt)
+            # Solicita a resposta final do Catelina Lacet
+            resposta = self.cateline_lacet_gpt.get_final_response(prompt)
 
             if resposta:
                 self.result_display.append(f"<p style='color: yellow;'>Catelina Lacet: {resposta}</p>")
@@ -160,7 +133,7 @@ class MainWindow(QMainWindow):
 
     def upload_file(self):
         """
-        Faz o upload do arquivo e processa os dados financeiros.
+        Faz o upload do arquivo e envia para o FileProcessingService.
         """
         file_dialog = QFileDialog(self)
         file_path, _ = file_dialog.getOpenFileName(self, "Selecione um arquivo", "", "Documentos (*.pdf *.xlsx *.docx)")
@@ -170,30 +143,15 @@ class MainWindow(QMainWindow):
                 file_type = file_path.split('.')[-1].lower()
                 with open(file_path, 'rb') as f:
                     self.file_data = f.read()
-                self.result_display.append(f"<p style='color: cyan;'>Arquivo carregado com sucesso. Pronto para análise!</p>")
-                # Habilitar os botões de análise após o envio do arquivo
-                self.analyze_cost_button.setEnabled(True)
-                self.analyze_financial_button.setEnabled(True)
-                self.analyze_cost_button.setStyleSheet("background-color: #E6E6FA;")
-                self.analyze_financial_button.setStyleSheet("background-color: #E6E6FA;")
+                
+                # Apenas envia o arquivo para o FileProcessingService
+                self.file_service.processar_arquivo(self.file_data, file_type)
+
+                # Exibe a confirmação do upload
+                self.result_display.append(f"<p style='color: cyan;'>Arquivo enviado com sucesso. Processamento em andamento...</p>")
+
             except Exception as e:
-                self.result_display.append(f"<p style='color: red;'>Erro ao processar o arquivo: {str(e)}</p>")
-
-    def analyze_cost(self):
-        """Análise de custos - somente executada se houver arquivo carregado."""
-        if self.file_data:
-            resposta_gpt = self.cateline_lacet_gpt.get_financial_analysis_response(self.file_data)
-            self.result_display.append(f"<p style='color: cyan;'>Resultado da Análise de Custos:\n{resposta_gpt}</p>")
-        else:
-            self.result_display.append(f"<p style='color: red;'>Por favor, envie um arquivo para realizar a análise de custos.</p>")
-
-    def analyze_financial(self):
-        """Análise financeira - somente executada se houver arquivo carregado."""
-        if self.file_data:
-            resposta_gpt = self.cateline_lacet_gpt.get_financial_analysis_response(self.file_data)
-            self.result_display.append(f"<p style='color: cyan;'>Resultado da Análise Financeira:\n{resposta_gpt}</p>")
-        else:
-            self.result_display.append(f"<p style='color: red;'>Por favor, envie um arquivo para realizar a análise financeira.</p>")
+                self.result_display.append(f"<p style='color: red;'>Erro ao enviar o arquivo: {str(e)}</p>")
 
     def cycle_humor(self):
         """Troca o humor e atualiza o ícone e a mensagem de boas-vindas."""
