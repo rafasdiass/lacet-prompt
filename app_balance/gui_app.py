@@ -2,10 +2,9 @@ from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QPushButton, QLabel, QFile
 from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtGui import QPixmap, QIcon
 import qtawesome
-from app_balance.services.gpt_module import CatelinaLacetGPT
+from app_balance.services.catelina_lacet import CatelinaLacetGPT
 from app_balance.services.file_processing_service import FileProcessingService
 from app_balance.services.user_preferences_service import UserPreferencesService
-
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -31,15 +30,15 @@ class MainWindow(QMainWindow):
 
         # Criar layout para o botão de mudança de humor e logo no topo
         top_layout = QHBoxLayout()
-        top_layout.setSpacing(10)  # Reduz a margem entre a logo e o botão de humor
+        top_layout.setSpacing(10)
         top_layout.addStretch()
 
         # Logo no topo, reduzida
         self.logo = QLabel()
         pixmap = QPixmap('assets/LOGO-BRANCA.PNG')
         self.logo.setPixmap(pixmap)
-        self.logo.setAlignment(Qt.AlignLeft)  # Alinhamento à esquerda
-        self.logo.setFixedSize(120, 40)  # Reduzindo o tamanho da logo
+        self.logo.setAlignment(Qt.AlignLeft)
+        self.logo.setFixedSize(120, 40)
         self.logo.setScaledContents(True)
         top_layout.addWidget(self.logo, alignment=Qt.AlignLeft)
 
@@ -92,7 +91,7 @@ class MainWindow(QMainWindow):
 
         # Botão de análise de custos
         self.analyze_cost_button = QPushButton()
-        self.analyze_cost_button.setIcon(QIcon(qtawesome.icon('fa.money', color='black')))  # Ícone substituído
+        self.analyze_cost_button.setIcon(QIcon(qtawesome.icon('fa.money', color='black')))
         self.analyze_cost_button.setIconSize(QSize(30, 30))
         self.analyze_cost_button.setStyleSheet("background-color: #C0C0C0; border-radius: 8px;")
         self.analyze_cost_button.setEnabled(False)
@@ -126,9 +125,17 @@ class MainWindow(QMainWindow):
     def enviar_pergunta(self):
         """Envia a pergunta digitada ao GPT-4 e exibe a resposta, priorizando dados locais."""
         prompt = self.input_field.text()
-        resposta = self.cateline_lacet_gpt.generate_response(prompt)
-        self.result_display.append(f"<p style='color: cyan;'>Você: {prompt}</p>")
-        self.result_display.append(f"<p style='color: yellow;'>Catelina Lacet: {resposta}</p>")
+        try:
+            resposta = self.cateline_lacet_gpt.generate_response(prompt)
+            if resposta:
+                self.result_display.append(f"<p style='color: cyan;'>Você: {prompt}</p>")
+                self.result_display.append(f"<p style='color: yellow;'>Catelina Lacet: {resposta}</p>")
+            else:
+                self.result_display.append(f"<p style='color: red;'>Erro ao processar sua pergunta. Tente novamente mais tarde.</p>")
+        except AttributeError as e:
+            self.result_display.append(f"<p style='color: red;'>Erro: {str(e)}. Verifique se todos os atributos estão implementados corretamente.</p>")
+        except Exception as e:
+            self.result_display.append(f"<p style='color: red;'>Erro inesperado: {str(e)}</p>")
         self.input_field.clear()
 
     def cycle_humor(self):
@@ -144,11 +151,11 @@ class MainWindow(QMainWindow):
         """Retorna o ícone correspondente ao humor atual."""
         humor = self.humores[self.humor_index]
         if humor == 'sarcastico':
-            return QIcon(qtawesome.icon('fa.frown-o', color='red'))  # Zangado
+            return QIcon(qtawesome.icon('fa.frown-o', color='red'))
         elif humor == 'compreensivo':
-            return QIcon(qtawesome.icon('fa.smile-o', color='green'))  # Sorriso leve
+            return QIcon(qtawesome.icon('fa.smile-o', color='green'))
         else:
-            return QIcon(qtawesome.icon('fa.smile-o', color='yellow'))  # Sorriso largo (padrão)
+            return QIcon(qtawesome.icon('fa.smile-o', color='yellow'))
 
     def upload_file(self):
         """Permite o upload de arquivos PDF, Excel ou DOCX para processamento."""
@@ -161,7 +168,10 @@ class MainWindow(QMainWindow):
                 with open(file_path, 'rb') as f:
                     file_data = f.read()
                 resposta_gpt = self.file_service.processar_arquivo(file_data, file_type)
-                self.result_display.append(f"<p style='color: cyan;'>Arquivo processado com sucesso:\n{resposta_gpt}</p>")
+                if resposta_gpt:
+                    self.result_display.append(f"<p style='color: cyan;'>Arquivo processado com sucesso:\n{resposta_gpt}</p>")
+                else:
+                    self.result_display.append(f"<p style='color: red;'>Erro ao processar o arquivo. Tente novamente mais tarde.</p>")
                 # Habilitar os botões de análise após o envio do arquivo
                 self.analyze_cost_button.setEnabled(True)
                 self.analyze_cost_button.setStyleSheet("background-color: #E6E6FA;")
