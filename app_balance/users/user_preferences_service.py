@@ -67,3 +67,15 @@ class UserPreferencesService:
         regex = r'^\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
         if not re.match(regex, email):
             raise ValueError("Email inválido.")
+
+    def get_humor_atual(self, usuario: Usuario):
+        """
+        Retorna o humor atual do usuário, baseado nas suas preferências salvas.
+        Args:
+            usuario (Usuario): O usuário carregado do banco de dados.
+        """
+        try:
+            humor_atual = usuario.preferencias_tom
+            return humor_atual
+        except Exception as e:
+            raise RuntimeError(f"Erro ao obter o humor atual: {str(e)}")

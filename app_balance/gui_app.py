@@ -7,6 +7,7 @@ from app_balance.processamento.file_processing_service import FileProcessingServ
 from app_balance.users.user_preferences_service import UserPreferencesService
 from app_balance.services.catelina_lacet import CatelinaLacetGPT  # Serviço que devolve a resposta final
 
+
 class MainWindow(QMainWindow):
     def __init__(self, usuario):  # Recebe o usuário como argumento
         super().__init__()
@@ -152,7 +153,7 @@ class MainWindow(QMainWindow):
             self.result_display.append(f"<p style='color: yellow;'>Análise de Texto: {analysis}</p>")
 
             # Solicita a resposta final do Catelina Lacet
-            resposta = self.cateline_lacet_gpt.get_final_response(prompt)
+            resposta = self.cateline_lacet_gpt.generate_response(prompt, analysis)
 
             if resposta:
                 self.result_display.append(f"<p style='color: yellow;'>Catelina Lacet: {resposta}</p>")
@@ -193,7 +194,7 @@ class MainWindow(QMainWindow):
 
     def get_dynamic_welcome_message(self):
         """Retorna uma mensagem de boas-vindas dinâmica com base no humor atual."""
-        humor = self.user_preferences_service.get_humor_atual()
+        humor = self.user_preferences_service.get_humor_atual(self.usuario)  # Passando o usuário carregado
         if humor == 'sarcastico':
             return "Prepare-se para aprender mais sobre finanças... se é que você entende algo disso."
         elif humor == 'compreensivo':
