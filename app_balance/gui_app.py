@@ -3,8 +3,8 @@ from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtGui import QPixmap, QIcon
 import qtawesome
 from app_balance.services.text_processing import TextProcessingService  # Primeira etapa de processamento
-from processamento.file_processing_service import FileProcessingService
-from users.user_preferences_service import UserPreferencesService
+from app_balance.processamento.file_processing_service import FileProcessingService
+from app_balance.users.user_preferences_service import UserPreferencesService
 from app_balance.services.catelina_lacet import CatelinaLacetGPT  # Serviço que devolve a resposta final
 
 class MainWindow(QMainWindow):

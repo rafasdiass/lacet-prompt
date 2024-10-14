@@ -1,7 +1,8 @@
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
-from processamento.models import Usuario  # Importar o modelo de Usuario da pasta processamento
+from processamento.models import Usuario  # Certifique-se de que o caminho está correto
 from sqlalchemy.exc import SQLAlchemyError
+import re
 
 # Configuração do banco de dados
 DATABASE_URL = 'sqlite:///recebimentos.db'
@@ -21,6 +22,12 @@ class UserPreferencesService:
         else:
             self.usuario = self.carregar_usuario_existente()
 
+    def validar_email(self, email):
+        """Valida se o email está no formato correto."""
+        regex = r'^\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+        if not re.match(regex, email):
+            raise ValueError("Email inválido.")
+
     def criar_usuario_dinamico(self):
         """
         Cria um novo usuário pedindo os dados diretamente do terminal.
@@ -28,8 +35,18 @@ class UserPreferencesService:
         try:
             nome = input("Digite o nome do usuário: ")
             email = input("Digite o email do usuário: ")
+
+            # Valida o formato do email
+            self.validar_email(email)
+
             preferencias_tom = input("Digite o humor preferido (ex: padrao, sarcástico, compreensivo): ")
             idioma_preferido = input("Digite o idioma preferido (ex: pt, en): ")
+
+            # Verifica se o usuário já existe
+            if session.query(Usuario).filter_by(nome=nome).first():
+                raise ValueError(f"Usuário com nome '{nome}' já existe.")
+            if session.query(Usuario).filter_by(email=email).first():
+                raise ValueError(f"Usuário com email '{email}' já existe.")
 
             # Criar e salvar o novo usuário no banco de dados
             novo_usuario = Usuario(
@@ -45,6 +62,8 @@ class UserPreferencesService:
         except SQLAlchemyError as e:
             session.rollback()
             raise RuntimeError(f"Erro ao criar o usuário: {str(e)}")
+        except ValueError as e:
+            print(f"Erro de validação: {str(e)}")
 
     def carregar_usuario_existente(self):
         """
@@ -83,5 +102,6 @@ class UserPreferencesService:
 # Exemplo de uso:
 if __name__ == "__main__":
     user_service = UserPreferencesService()
-    humor_atual = user_service.get_humor_atual()
-    print(f"O humor atual de {user_service.usuario.nome} é: {humor_atual}")
+    if user_service.usuario:
+        humor_atual = user_service.get_humor_atual()
+        print(f"O humor atual de {user_service.usuario.nome} é: {humor_atual}")
