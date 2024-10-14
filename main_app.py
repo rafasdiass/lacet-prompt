@@ -1,15 +1,47 @@
-# main_app.py
 import sys
+import os
 from PyQt5.QtWidgets import QApplication
 from app_balance.gui_app import MainWindow
-from app_balance.models import criar_tabelas
+from app_balance.users.user_creation_dialog import UserCreationDialog
+from app_balance.processamento.models import criar_tabelas
+from app_balance.users.user_preferences_service import UserPreferencesService
+import sqlite3
+
+def verificar_tabelas():
+    """Função para verificar se as tabelas foram criadas corretamente no banco de dados."""
+    if os.path.exists('db.sqlite'):
+        print("Banco de dados encontrado.")
+        conn = sqlite3.connect('db.sqlite')
+        cursor = conn.cursor()
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='usuarios';")
+        tabelas = cursor.fetchall()
+        if not tabelas:
+            print("Tabela 'usuarios' não encontrada, criando tabelas...")
+            criar_tabelas()  # Criação de todas as tabelas
+        else:
+            print("Tabelas já estão presentes.")
+        conn.close()
+    else:
+        print("Banco de dados não encontrado. Criando novo banco de dados.")
+        criar_tabelas()
 
 def main():
-    criar_tabelas()  # Garante que as tabelas sejam criadas antes de iniciar o app
+    verificar_tabelas()  # Verifica e garante que as tabelas estejam criadas antes de iniciar o app
+
     app = QApplication(sys.argv)
-    window = MainWindow()  # Instancia o MainWindow que está no arquivo gui_app.py
-    window.show()  # Exibe a janela
-    sys.exit(app.exec_())  # Inicia o loop de eventos da interface gráfica
+
+    # Inicializa o serviço de usuário
+    user_service = UserPreferencesService()
+
+    # Exibe a tela de criação de usuário
+    user_dialog = UserCreationDialog(user_service)
+    if user_dialog.exec_():  # Se o usuário for criado com sucesso
+        usuario = user_service.carregar_usuario_existente(user_dialog.name_input.text())
+        if usuario:
+            # Inicializa a tela principal com o usuário
+            window = MainWindow(usuario)
+            window.show()
+            sys.exit(app.exec_())
 
 if __name__ == "__main__":
-    main()  # Chama a função principal
+    main()

@@ -8,11 +8,11 @@ from app_balance.users.user_preferences_service import UserPreferencesService
 from app_balance.services.catelina_lacet import CatelinaLacetGPT  # Serviço que devolve a resposta final
 
 class MainWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, usuario):  # Recebe o usuário como argumento
         super().__init__()
-        self.setWindowTitle("Catelina Lacet - Sua IA Financeira com Senso de Humor!")
+        self.usuario = usuario  # Armazena o usuário
+        self.setWindowTitle(f"Catelina Lacet - Bem-vindo, {self.usuario.nome}!")
         self.setGeometry(100, 100, 1000, 800)
-        self.setStyleSheet("background-color: #000000; color: #EDEDED; font-family: 'Arial', sans-serif;")
 
         # Inicializando os serviços
         self.text_processor = TextProcessingService()  # Serviço para processar texto
@@ -29,6 +29,9 @@ class MainWindow(QMainWindow):
 
         # Inicializando a interface de usuário
         self.setup_ui()
+
+        # Aplicando a paleta de cores
+        self.apply_styles()
 
     def setup_ui(self):
         layout = QVBoxLayout()
@@ -80,7 +83,7 @@ class MainWindow(QMainWindow):
         input_layout = QHBoxLayout()
         self.input_field = QLineEdit(self)
         self.input_field.setPlaceholderText("Digite sua pergunta para a Catelina Lacet...")
-        self.input_field.setStyleSheet("font-size: 16px; padding: 10px; background-color: #696969; color: white;")
+        self.input_field.setStyleSheet("font-size: 16px; padding: 10px; background-color: #FFE3E3; color: #2C003E;")
         self.input_field.setMinimumHeight(60)
         input_layout.addWidget(self.input_field)
 
@@ -88,7 +91,7 @@ class MainWindow(QMainWindow):
         send_button = QPushButton()
         send_button.setIcon(QIcon(qtawesome.icon('fa.paper-plane', color='black')))
         send_button.setIconSize(QSize(30, 30))
-        send_button.setStyleSheet("background-color: #E6E6FA; border-radius: 8px;")
+        send_button.setStyleSheet("background-color: #6A0572; border-radius: 8px; color: #F9F3F3;")
         send_button.clicked.connect(self.enviar_pergunta)
         input_layout.addWidget(send_button)
 
@@ -96,7 +99,7 @@ class MainWindow(QMainWindow):
         upload_button = QPushButton()
         upload_button.setIcon(QIcon(qtawesome.icon('fa.upload', color='black')))
         upload_button.setIconSize(QSize(30, 30))
-        upload_button.setStyleSheet("background-color: #E6E6FA; border-radius: 8px;")
+        upload_button.setStyleSheet("background-color: #6A0572; border-radius: 8px; color: #F9F3F3;")
         upload_button.clicked.connect(self.upload_file)
         input_layout.addWidget(upload_button)
 
@@ -106,6 +109,34 @@ class MainWindow(QMainWindow):
         central_widget = QWidget()
         central_widget.setLayout(layout)
         self.setCentralWidget(central_widget)
+
+    def apply_styles(self):
+        """
+        Aplica a paleta de cores Inverno Brilhante para o layout principal da aplicação.
+        """
+        # Paleta de cores
+        background_color = "#1F1D36"  # Fundo roxo escuro
+        label_color = "#E94560"  # Texto rosa vibrante
+        input_background = "#FFE3E3"  # Campos de input rosa claro
+        input_text_color = "#2C003E"  # Texto roxo profundo
+        button_background = "#6A0572"  # Botões roxo médio
+        button_text_color = "#F9F3F3"  # Texto dos botões branco
+        button_hover_background = "#890F76"  # Efeito de hover nos botões
+
+        # Aplicar estilo de fundo da janela
+        self.setStyleSheet(f"""
+            background-color: {background_color};
+            color: {label_color};
+            font-family: 'Arial', sans-serif;
+        """)
+
+        # Aplicar estilo na área de exibição de resultados
+        self.result_display.setStyleSheet(f"""
+            background-color: {input_background};
+            color: {input_text_color};
+            border-radius: 8px;
+            padding: 10px;
+        """)
 
     def enviar_pergunta(self):
         """

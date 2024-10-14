@@ -1,11 +1,11 @@
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
-from processamento.models import Usuario  # Certifique-se de que o caminho está correto
+from app_balance.processamento.models import Usuario  # Certifique-se de que o caminho está correto
 from sqlalchemy.exc import SQLAlchemyError
 import re
 
 # Configuração do banco de dados
-DATABASE_URL = 'sqlite:///recebimentos.db'
+DATABASE_URL = 'sqlite:///db.sqlite'
 engine = create_engine(DATABASE_URL)
 Session = sessionmaker(bind=engine)
 session = Session()
@@ -15,32 +15,13 @@ class UserPreferencesService:
     Serviço para gerenciar as preferências do usuário, como tipo de humor e outras configurações.
     """
 
-    def __init__(self):
-        # Pergunta ao usuário se deseja criar ou carregar um usuário existente
-        if input("Deseja criar um novo usuário? (s/n): ").lower() == 's':
-            self.usuario = self.criar_usuario_dinamico()
-        else:
-            self.usuario = self.carregar_usuario_existente()
-
-    def validar_email(self, email):
-        """Valida se o email está no formato correto."""
-        regex = r'^\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
-        if not re.match(regex, email):
-            raise ValueError("Email inválido.")
-
-    def criar_usuario_dinamico(self):
+    def criar_usuario_dinamico(self, nome: str, email: str, preferencias_tom: str, idioma_preferido: str):
         """
-        Cria um novo usuário pedindo os dados diretamente do terminal.
+        Cria um novo usuário pedindo os dados da interface gráfica.
         """
         try:
-            nome = input("Digite o nome do usuário: ")
-            email = input("Digite o email do usuário: ")
-
             # Valida o formato do email
             self.validar_email(email)
-
-            preferencias_tom = input("Digite o humor preferido (ex: padrao, sarcástico, compreensivo): ")
-            idioma_preferido = input("Digite o idioma preferido (ex: pt, en): ")
 
             # Verifica se o usuário já existe
             if session.query(Usuario).filter_by(nome=nome).first():
@@ -64,13 +45,13 @@ class UserPreferencesService:
             raise RuntimeError(f"Erro ao criar o usuário: {str(e)}")
         except ValueError as e:
             print(f"Erro de validação: {str(e)}")
+            return None
 
-    def carregar_usuario_existente(self):
+    def carregar_usuario_existente(self, nome: str):
         """
         Carrega um usuário existente do banco de dados pelo nome.
         """
         try:
-            nome = input("Digite o nome do usuário a ser carregado: ")
             usuario = session.query(Usuario).filter_by(nome=nome).first()
             if not usuario:
                 print(f"Usuário '{nome}' não encontrado.")
@@ -81,27 +62,8 @@ class UserPreferencesService:
             session.rollback()
             raise RuntimeError(f"Erro ao carregar o usuário: {str(e)}")
 
-    def set_humor(self, humor: str):
-        """
-        Define o humor do usuário e salva no banco de dados.
-        """
-        try:
-            self.usuario.preferencias_tom = humor
-            session.commit()
-            print(f"Humor alterado para: {humor}")
-        except SQLAlchemyError as e:
-            session.rollback()
-            raise RuntimeError(f"Erro ao salvar as preferências de humor no banco de dados: {str(e)}")
-
-    def get_humor_atual(self):
-        """
-        Retorna o humor atual do usuário.
-        """
-        return self.usuario.preferencias_tom
-
-# Exemplo de uso:
-if __name__ == "__main__":
-    user_service = UserPreferencesService()
-    if user_service.usuario:
-        humor_atual = user_service.get_humor_atual()
-        print(f"O humor atual de {user_service.usuario.nome} é: {humor_atual}")
+    def validar_email(self, email: str):
+        """Valida se o email está no formato correto."""
+        regex = r'^\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+        if not re.match(regex, email):
+            raise ValueError("Email inválido.")
