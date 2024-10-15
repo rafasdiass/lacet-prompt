@@ -12,6 +12,9 @@ def process_excel_file(file):
     Returns:
         list: Lista de dicionários representando os dados das planilhas.
     """
+    if not file.filename.endswith(('.xls', '.xlsx')):
+        raise ValueError("Arquivo Excel inválido. Certifique-se de que é um arquivo .xls ou .xlsx")
+
     # Ler a planilha Excel
     excel_data = pd.read_excel(file, sheet_name=None)
 

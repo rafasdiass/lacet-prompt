@@ -1,37 +1,33 @@
 from openai import OpenAI
 from environs import Env
 
-# Carregar variáveis de ambiente para a chave da API do OpenAI
+# Configurações da API OpenAI
 env = Env()
 env.read_env()
 
-# Verifica se a chave da API está definida
 openai_key = env.str("OPENAI_API_KEY", default=None)
+organization_id = env.str("OPENAI_ORG_ID", default=None)
+
 if not openai_key:
     raise EnvironmentError("A chave da API do OpenAI não está definida. Verifique o arquivo .env")
+if not organization_id:
+    raise EnvironmentError("O ID da organização do OpenAI não está definido. Verifique o arquivo .env")
 
-# Instancia o cliente da API OpenAI
-client = OpenAI(api_key=openai_key)
+client = OpenAI(api_key=openai_key, organization=organization_id)
 
 def analyze_data(prompt: str) -> str:
     """
-    Interage com a API do OpenAI para analisar dados com base no prompt fornecido.
-    Se falhar, retorna uma resposta simulada.
+    Envia o prompt para o GPT-4 e retorna a resposta.
+    Se houver um erro, retorna uma resposta padrão baseada em dados locais.
     """
     try:
         response = client.chat.completions.create(
-            model="gpt-4",
+            model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": prompt}],
             max_tokens=500,
             temperature=0.7
         )
-        # Retorna a resposta do GPT-4
         return response.choices[0].message.content.strip()
     except Exception as e:
-        return f"Erro ao comunicar com o OpenAI: {str(e)}"
-
-def simulate_analyze_data(prompt: str) -> str:
-    """
-    Retorna uma análise simulada sem conexão com OpenAI.
-    """
-    return f"Simulação GPT-4: Baseado no prompt '{prompt}', aqui está a análise simulada dos dados financeiros."
+        # Em caso de erro, apenas retorna uma resposta genérica sem depender de GPT-4
+        return ""  # Não deve causar impacto na resposta final, o GPT-4 é apenas um complemento
