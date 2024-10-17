@@ -1,8 +1,8 @@
 from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Text
-from sqlalchemy.orm import relationship
-from sqlalchemy import create_engine
-from processamento.database_setup import Base
+from sqlalchemy.orm import relationship, declarative_base
 import datetime
+
+Base = declarative_base()
 
 # Classe Usuario
 class Usuario(Base):
@@ -18,7 +18,6 @@ class Usuario(Base):
     # Relacionamento com a tabela PromptModel
     prompts = relationship('PromptModel', back_populates='usuario')
 
-
 # Classe Recebimento
 class Recebimento(Base):
     __tablename__ = 'recebimentos'
@@ -33,8 +32,7 @@ class Recebimento(Base):
     # Relacionamento com a tabela Usuario
     usuario_id = Column(Integer, ForeignKey('usuarios.id'))
 
-
-# Classe PromptModel (foi renomeada)
+# Classe PromptModel
 class PromptModel(Base):
     __tablename__ = 'prompts'
     __table_args__ = {'extend_existing': True}
@@ -55,7 +53,6 @@ class PromptModel(Base):
     # Relacionamento com as análises
     analises = relationship('Analise', back_populates='prompt')
 
-
 # Classe GPT4Response
 class GPT4Response(Base):
     __tablename__ = 'gpt4_responses'
@@ -67,7 +64,6 @@ class GPT4Response(Base):
 
     # Relacionamento com a tabela PromptModel
     prompt = relationship('PromptModel', back_populates='gpt4_responses')
-
 
 # Classe Analise (para armazenar análises feitas sobre os prompts)
 class Analise(Base):
@@ -82,13 +78,8 @@ class Analise(Base):
     prompt_id = Column(Integer, ForeignKey('prompts.id'))
     prompt = relationship('PromptModel', back_populates='analises')
 
-
-# Configuração do motor do banco de dados
-engine = create_engine('sqlite:///db.sqlite')
-
-
 # Função para criar todas as tabelas no banco de dados
-def criar_tabelas():
+def criar_tabelas(engine):
     """Cria todas as tabelas no banco de dados."""
     Base.metadata.create_all(engine)
     print("Tabelas criadas com sucesso.")
