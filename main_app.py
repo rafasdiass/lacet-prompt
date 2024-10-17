@@ -3,7 +3,7 @@ import os
 from PyQt5.QtWidgets import QApplication
 from app_balance.gui_app import MainWindow
 from app_balance.users.user_creation_dialog import UserCreationDialog
-from app_balance.users.login_dialog import LoginDialog
+from app_balance.users.login_dialog import LoginDialog  # Importar a nova tela de login
 from app_balance.processamento.models import criar_tabelas
 from app_balance.users.user_preferences_service import UserPreferencesService
 from services.persistencia import DataPersistenceService
@@ -49,11 +49,11 @@ def main():
         if login_dialog.exec_():  # Se o login for bem-sucedido
             usuario = user_service.carregar_usuario_existente(login_dialog.name_input.text())
             if usuario:
-                # Integrando o DataPersistenceService
-                data_service = DataPersistenceService(session, usuario)  # Inicializa o serviço de persistência
+                # Inicializa o serviço de persistência de dados
+                data_service = DataPersistenceService(session, usuario)
 
-                # Inicializa a tela principal com o usuário autenticado e o serviço de persistência
-                window = MainWindow(usuario, data_service)  # Passa o data_service para a MainWindow
+                # Inicializa a tela principal com o usuário autenticado e os serviços de persistência
+                window = MainWindow(usuario, data_service, session)  # Passando a sessão
                 window.show()
                 sys.exit(app.exec_())
         else:

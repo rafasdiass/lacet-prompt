@@ -20,18 +20,17 @@ from app_balance.services.catelina_lacet import CatelinaLacetGPT
 
 
 class MainWindow(QMainWindow):
-    def __init__(self, usuario):
+    def __init__(self, usuario, data_service, session):
         super().__init__()
         self.usuario = usuario
+        self.data_service = data_service  # Adicionando data_service para persistir dados
         self.setWindowTitle(f"Catelina Lacet - Bem-vindo, {self.usuario.nome}!")
         self.setGeometry(100, 100, 1000, 800)
 
         # Inicializando os serviços
         self.text_processor = TextProcessingService()  # Serviço para processar texto
         self.file_service = FileProcessingService()  # Serviço para processar arquivos
-        self.user_preferences_service = (
-            UserPreferencesService()
-        )  # Preferências do usuário
+        self.user_preferences_service = UserPreferencesService(session)  # Passa a sessão aqui
         self.cateline_lacet_gpt = CatelinaLacetGPT()  # IA que devolve a resposta final
 
         # Variáveis para armazenar dados do usuário
@@ -241,6 +240,10 @@ class MainWindow(QMainWindow):
                 self.result_display.append(
                     f"<p style='color: #E94560;'>Catelina Lacet: {resposta}</p>"
                 )
+                
+                # Salva o prompt e a resposta no banco de dados usando o data_service
+                self.data_service.save_prompt_and_response(prompt, resposta)
+
             else:
                 self.result_display.append(
                     f"<p style='color: red;'>Erro ao processar sua pergunta. Tente novamente mais tarde.</p>"
