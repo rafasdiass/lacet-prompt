@@ -9,16 +9,10 @@ logging.basicConfig(level=logging.INFO)
 class DataPersistenceService:
     """
     Serviço para persistência de dados no banco de dados após o processamento.
+    Implementa um padrão híbrido que decide a persistência com base no tipo de dado.
     """
 
     def __init__(self, session: Session, usuario: Usuario):
-        """
-        Inicializa o serviço de persistência de dados.
-
-        Parâmetros:
-        session (Session): Sessão ativa do SQLAlchemy.
-        usuario (Usuario): Instância do usuário para o qual os dados serão persistidos.
-        """
         if not session:
             raise ValueError("Sessão do banco de dados não foi fornecida")
         if not usuario:
@@ -27,14 +21,19 @@ class DataPersistenceService:
         self.usuario = usuario
         logging.info(f"DataPersistenceService inicializado para o usuário: {usuario.nome}")
 
+    # Strategy Pattern para definir se os dados devem ser persistidos ou não
+    def persist_data(self, data_type: str, **kwargs):
+        """
+        Define se os dados devem ser persistidos com base no tipo (prompt, financeiro, etc.).
+        """
+        if data_type == "financeiro":
+            self.save_financial_analysis(**kwargs)
+        elif data_type == "prompt":
+            self.save_prompt_and_response(**kwargs)
+
     def save_prompt_and_response(self, prompt_text: str, response: str, source: str = "local"):
         """
         Salva um prompt e sua respectiva resposta gerada pela IA.
-
-        Parâmetros:
-        prompt_text (str): Texto do prompt enviado pelo usuário.
-        response (str): Resposta gerada pela IA.
-        source (str): Origem da resposta (local ou remota), default é "local".
         """
         try:
             logging.info(f"Salvando prompt '{prompt_text}' e resposta '{response}' para o usuário {self.usuario.nome}")
@@ -56,10 +55,6 @@ class DataPersistenceService:
     def save_gpt4_response(self, prompt_id: int, gpt4_response: str):
         """
         Salva a resposta gerada pela GPT-4 para um determinado prompt.
-
-        Parâmetros:
-        prompt_id (int): ID do prompt para o qual a resposta foi gerada.
-        gpt4_response (str): Resposta gerada pela GPT-4.
         """
         try:
             logging.info(f"Salvando resposta GPT-4 para o prompt {prompt_id}")
@@ -79,11 +74,6 @@ class DataPersistenceService:
     def save_financial_analysis(self, categorias_custos: dict, total_custos: float, receita_projetada: float):
         """
         Salva os dados da análise financeira, incluindo as categorias de custo e receita projetada.
-
-        Parâmetros:
-        categorias_custos (dict): Dicionário contendo as categorias de custo e seus valores.
-        total_custos (float): Valor total dos custos.
-        receita_projetada (float): Valor da receita projetada.
         """
         try:
             logging.info(f"Salvando análise financeira. Total de custos: {total_custos}, Receita projetada: {receita_projetada}")
@@ -104,44 +94,9 @@ class DataPersistenceService:
             logging.error(f"Erro ao salvar análise financeira: {str(e)}")
             raise RuntimeError(f"Erro ao salvar análise financeira: {str(e)}")
 
-    def get_user_prompts(self):
-        """
-        Busca e retorna todos os prompts salvos para o usuário atual.
-
-        Retorna:
-        list: Lista de objetos PromptModel relacionados ao usuário.
-        """
-        try:
-            logging.info(f"Buscando prompts para o usuário {self.usuario.nome}")
-            prompts = self.session.query(PromptModel).filter_by(usuario_id=self.usuario.id).all()
-            logging.info(f"Total de prompts encontrados: {len(prompts)}")
-            return prompts
-        except Exception as e:
-            logging.error(f"Erro ao buscar prompts: {str(e)}")
-            raise RuntimeError(f"Erro ao buscar prompts: {str(e)}")
-
-    def get_user_financial_data(self):
-        """
-        Busca e retorna todos os dados financeiros salvos para o usuário atual.
-
-        Retorna:
-        list: Lista de objetos Recebimento relacionados ao usuário.
-        """
-        try:
-            logging.info(f"Buscando dados financeiros para o usuário {self.usuario.nome}")
-            financial_data = self.session.query(Recebimento).filter_by(usuario_id=self.usuario.id).all()
-            logging.info(f"Total de registros financeiros encontrados: {len(financial_data)}")
-            return financial_data
-        except Exception as e:
-            logging.error(f"Erro ao buscar dados financeiros: {str(e)}")
-            raise RuntimeError(f"Erro ao buscar dados financeiros: {str(e)}")
-
     def get_latest_financial_data(self):
         """
         Busca e retorna o último registro financeiro salvo para o usuário atual.
-
-        Retorna:
-        dict: Dicionário contendo o último registro de dados financeiros (total_custos, receita_projetada e categorias_custos).
         """
         try:
             logging.info(f"Buscando último registro financeiro para o usuário {self.usuario.nome}")

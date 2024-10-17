@@ -1,5 +1,6 @@
 from openai import OpenAI
 from environs import Env
+import logging
 
 # Configurações da API OpenAI
 env = Env()
@@ -21,13 +22,15 @@ def analyze_data(prompt: str) -> str:
     Se houver um erro, retorna uma resposta padrão baseada em dados locais.
     """
     try:
+        logging.info(f"Enviando prompt para GPT-4: {prompt}")
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4",  # Use GPT-4 aqui
             messages=[{"role": "user", "content": prompt}],
             max_tokens=500,
             temperature=0.7
         )
         return response.choices[0].message.content.strip()
     except Exception as e:
-        # Em caso de erro, apenas retorna uma resposta genérica sem depender de GPT-4
-        return ""  # Não deve causar impacto na resposta final, o GPT-4 é apenas um complemento
+        logging.error(f"Erro ao comunicar com GPT-4: {str(e)}")
+        # Em caso de erro, retorna uma resposta padrão
+        return "Desculpe, houve um erro ao processar sua solicitação."

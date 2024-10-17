@@ -1,4 +1,4 @@
-from app_balance.services.openai_service import analyze_data
+from gpt4.openai_service import analyze_data
 
 class GPTService:
     """
@@ -8,6 +8,6 @@ class GPTService:
 
     def enviar_prompt(self, prompt: str) -> str:
         """
-        Envia um prompt para o GPT-4.
+        Envia um prompt para o GPT-4 e retorna a resposta.
         """
         return analyze_data(prompt)
