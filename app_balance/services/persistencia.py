@@ -21,7 +21,6 @@ class DataPersistenceService:
         self.usuario = usuario
         logging.info(f"DataPersistenceService inicializado para o usuário: {usuario.nome}")
 
-    # Strategy Pattern para definir se os dados devem ser persistidos ou não
     def persist_data(self, data_type: str, **kwargs):
         """
         Define se os dados devem ser persistidos com base no tipo (prompt, financeiro, etc.).
@@ -52,25 +51,6 @@ class DataPersistenceService:
             logging.error(f"Erro ao salvar prompt e resposta: {str(e)}")
             raise RuntimeError(f"Erro ao salvar prompt e resposta: {str(e)}")
 
-    def save_gpt4_response(self, prompt_id: int, gpt4_response: str):
-        """
-        Salva a resposta gerada pela GPT-4 para um determinado prompt.
-        """
-        try:
-            logging.info(f"Salvando resposta GPT-4 para o prompt {prompt_id}")
-            gpt4_response_record = GPT4Response(
-                prompt_id=prompt_id,
-                resposta_gpt4=gpt4_response,
-                data_resposta=datetime.now(),
-            )
-            self.session.add(gpt4_response_record)
-            self.session.commit()
-            logging.info(f"Resposta GPT-4 associada ao prompt {prompt_id} salva com sucesso.")
-        except Exception as e:
-            self.session.rollback()
-            logging.error(f"Erro ao salvar resposta GPT-4: {str(e)}")
-            raise RuntimeError(f"Erro ao salvar resposta GPT-4: {str(e)}")
-
     def save_financial_analysis(self, categorias_custos: dict, total_custos: float, receita_projetada: float):
         """
         Salva os dados da análise financeira, incluindo as categorias de custo e receita projetada.
@@ -93,24 +73,3 @@ class DataPersistenceService:
             self.session.rollback()
             logging.error(f"Erro ao salvar análise financeira: {str(e)}")
             raise RuntimeError(f"Erro ao salvar análise financeira: {str(e)}")
-
-    def get_latest_financial_data(self):
-        """
-        Busca e retorna o último registro financeiro salvo para o usuário atual.
-        """
-        try:
-            logging.info(f"Buscando último registro financeiro para o usuário {self.usuario.nome}")
-            recebimento = self.session.query(Recebimento).filter_by(usuario_id=self.usuario.id).order_by(Recebimento.data_recebimento.desc()).first()
-            if recebimento:
-                logging.info(f"Último registro encontrado: {recebimento}")
-                return {
-                    "total_custos": recebimento.total_custos,
-                    "receita_projetada": recebimento.receita_projetada,
-                    "categorias_custos": {recebimento.categoria: recebimento.valor},
-                }
-            else:
-                logging.warning(f"Nenhum dado financeiro encontrado para o usuário {self.usuario.nome}")
-                return None
-        except Exception as e:
-            logging.error(f"Erro ao buscar último dado financeiro: {str(e)}")
-            return None

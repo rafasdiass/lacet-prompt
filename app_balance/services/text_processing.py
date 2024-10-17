@@ -1,64 +1,42 @@
 import spacy
-from transformers import pipeline
 import logging
-from typing import Dict, List, Tuple, Any, Union
+from transformers import pipeline
+from typing import Dict, Union
+from services.gpt_service import GPTService
 
-# Configurar logging
-logging.basicConfig(level=logging.INFO)
-
-# Carregar modelo do spaCy e Transformers
+# Carregar o modelo spaCy para fallback local
 nlp = spacy.load("en_core_web_sm")
 
-# Definindo o pipeline com o modelo RoBERTa para análise de sentimentos
+# Definir pipeline local de fallback (Roberta para análise de sentimentos)
 classifier = pipeline("sentiment-analysis", model="roberta-base")
-summarizer = pipeline("summarization", model="facebook/bart-large-cnn")
-
 
 class TextProcessingService:
     """
-    Serviço responsável por processar textos e dados extraídos, interpretar linguagem natural,
-    e decidir a rota apropriada com base em categorias, incluindo finanças e outros temas.
-    Também inclui funcionalidade de summarization para resumir textos longos.
+    Serviço responsável por enviar o prompt diretamente ao GPT-4,
+    e usar análise local como fallback em caso de falha.
     """
 
-    def __init__(self):
-        # Palavras-chave financeiras ampliadas
-        self.financial_keywords: List[str] = [
-            "finança", "investimento", "dinheiro", "ações", "economia", "receita", 
-            "lucro", "imposto", "taxa", "ROI", "juros", "rentabilidade", "poupança", 
-            "despesa", "dividendos", "cash flow", "custo", "orçamento", "análise",
-        ]
-        self.joke_keywords: List[str] = ["piada", "engraçado", "brincadeira"]
+    def __init__(self, gpt_service: GPTService):
+        self.gpt_service = gpt_service  # Sempre utilizará o serviço GPT-4
 
     def clean_text(self, text: str) -> str:
         """
         Limpa o texto removendo caracteres especiais e números.
         """
         import re
-        text = re.sub(r"[^a-zA-Z\s]", "", text)
-        return text.strip().lower()
+        return re.sub(r"[^a-zA-Z\s]", "", text).strip().lower()
 
-    def analyze_text(self, text: str) -> Dict[str, Union[str, List[Tuple[str, str]], List[str]]]:
+    def analyze_text(self, text: str) -> Dict[str, Union[str, list]]:
         """
-        Analisa o texto usando spaCy e Transformers, incluindo palavras-chave e entidades.
-        Usa modelos baseados em contexto para compreender o sentido geral das frases.
+        Fallback: Analisa o texto localmente usando spaCy e transformers.
         """
         try:
-            logging.info(f"Analisando texto: {text}")
+            logging.info(f"Analisando texto localmente: {text}")
             doc = nlp(text)
             sentiment = classifier(text)
 
-            # Captura as palavras do texto e suas entidades
-            keywords: List[str] = [token.text for token in doc]
-            entities: List[Tuple[str, str]] = [(ent.text, ent.label_) for ent in doc.ents]
-
-            # Refatoração da lógica com 'any' para melhorar a legibilidade
-            if any(token in self.financial_keywords for token in keywords) or entities:
-                keywords.append("finance")
-
-            logging.info(f"Palavras-chave detectadas: {keywords}")
-            logging.info(f"Entidades detectadas: {entities}")
-            logging.info(f"Sentimento detectado: {sentiment}")
+            keywords = [token.text for token in doc]
+            entities = [(ent.text, ent.label_) for ent in doc.ents]
 
             return {
                 "keywords": keywords,
@@ -66,79 +44,24 @@ class TextProcessingService:
                 "entities": entities,
             }
         except Exception as e:
-            logging.error(f"Erro ao analisar o texto: {str(e)}")
-            return {
-                "keywords": ["generico"],
-                "sentiment": "NEUTRAL",
-                "entities": [],
-                "error": str(e),
-            }
+            logging.error(f"Erro ao analisar texto localmente: {str(e)}")
+            return {"keywords": ["generico"], "sentiment": "NEUTRAL", "entities": []}
 
-    def summarize_text(self, text: str) -> str:
+    def process_text(self, input_data: str) -> str:
         """
-        Fornece um resumo do texto fornecido usando o modelo de Summarization.
+        Processa o texto fornecido e sempre tenta enviar primeiro para o GPT-4.
+        Se falhar, faz o fallback para análise local.
         """
+        cleaned_text = self.clean_text(input_data)
+
+        # Primeiro, tenta usar o GPT-4
         try:
-            summary = summarizer(text, max_length=130, min_length=30, do_sample=False)
-            return summary[0]['summary_text']
+            logging.info("Enviando prompt para GPT-4")
+            return self.gpt_service.enviar_prompt(cleaned_text)  # Sempre usar GPT-4
         except Exception as e:
-            logging.error(f"Erro ao resumir o texto: {str(e)}")
-            return "Erro ao gerar resumo."
+            logging.error(f"Erro ao usar GPT-4: {str(e)}")
+            logging.info("Usando fallback local")
 
-    def process_data_from_file(self, data: Dict[str, Any]) -> Dict[str, Union[str, List[Tuple[str, str]], List[str]]]:
-        """
-        Processa os dados extraídos de arquivos e os converte para um formato adequado para análise de texto.
-        """
-        text_representation = " ".join(
-            [f"{cat} {val}" for cat, val in data.get("categorias_custos", {}).items()]
-        )
-        return self.analyze_text(text_representation)
-
-    def decide_route(self, analysis: Dict[str, Union[str, List[Tuple[str, str]], List[str]]]) -> str:
-        """
-        Decide a rota com base na análise do texto ou dados.
-        Aqui também é onde identificamos qual serviço financeiro usar, dependendo do conteúdo.
-        """
-        keywords = analysis.get("keywords", [])
-        entities = analysis.get("entities", [])
-
-        logging.info(f"Decidindo a rota com base nas palavras-chave: {keywords}")
-
-        # Verifica se é um tópico financeiro
-        if any(keyword in self.financial_keywords for keyword in keywords):
-            if "ROI" in keywords or "retorno" in keywords:
-                return "advanced_financial_analysis"  # Direciona para análise avançada
-            elif any(term in ["despesa", "orçamento", "lucro", "custo"] for term in keywords):
-                return "financial_analysis"  # Direciona para análise prática
-            else:
-                return "general_financial"  # Rota geral para outros tópicos financeiros
-
-        # Verifica se é um tópico de piada
-        elif any(keyword in self.joke_keywords for keyword in keywords):
-            return "joke"
-
-        elif "generico" in keywords:
-            return "generic"  # Rota para perguntas genéricas
-
-        return "general"  # Rota para tópicos gerais
-
-    def route_and_process(self, input_data: Union[str, Dict[str, Any]], is_summary: bool = False) -> str:
-        """
-        Processa tanto textos fornecidos diretamente pelo input do usuário quanto dados extraídos de arquivos.
-        Adiciona a opção de realizar a ação de Summarization quando o parâmetro is_summary for True.
-        """
-        if isinstance(input_data, str):
-            cleaned_text = self.clean_text(input_data)
-            analysis = self.analyze_text(cleaned_text)
-
-            # Resumo se o parâmetro for solicitado
-            if is_summary:
-                return self.summarize_text(cleaned_text)
-
-        else:
-            analysis = self.process_data_from_file(input_data)
-
-        # Decide a rota com base na análise
-        route = self.decide_route(analysis)
-        logging.info(f"Rota decidida: {route}")
-        return route
+        # Fallback: Análise local se o GPT falhar
+        analysis = self.analyze_text(cleaned_text)
+        return f"Fallback: {analysis['keywords']}"  # Simples fallback para análise de keywords
