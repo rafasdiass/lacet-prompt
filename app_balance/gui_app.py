@@ -58,7 +58,7 @@ class MainWindow(QMainWindow):
         self.cath_image = QLabel()
         pixmap_cath = QPixmap("assets/img/cath.png")
         self.cath_image.setPixmap(pixmap_cath)
-        self.cath_image.setFixedSize(80, 80)  # Reduzida para 40x40
+        self.cath_image.setFixedSize(80, 80)
         self.cath_image.setScaledContents(True)
         top_layout.addWidget(self.cath_image, alignment=Qt.AlignLeft)
 
@@ -151,7 +151,6 @@ class MainWindow(QMainWindow):
         central_widget = QWidget()
         central_widget.setLayout(layout)
         self.setCentralWidget(central_widget)
-
 
     def apply_styles(self):
         """

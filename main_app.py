@@ -3,9 +3,19 @@ import os
 from PyQt5.QtWidgets import QApplication
 from app_balance.gui_app import MainWindow
 from app_balance.users.user_creation_dialog import UserCreationDialog
+from app_balance.users.login_dialog import LoginDialog  # Importar a nova tela de login
 from app_balance.processamento.models import criar_tabelas
 from app_balance.users.user_preferences_service import UserPreferencesService
+from services.persistencia import DataPersistenceService
 import sqlite3
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
+# Configuração do banco de dados
+DATABASE_URL = 'sqlite:///db.sqlite'
+engine = create_engine(DATABASE_URL)
+Session = sessionmaker(bind=engine)
+session = Session()
 
 def verificar_tabelas():
     """Função para verificar se as tabelas foram criadas corretamente no banco de dados."""
@@ -30,18 +40,24 @@ def main():
 
     app = QApplication(sys.argv)
 
-    # Inicializa o serviço de usuário
-    user_service = UserPreferencesService()
+    # Inicializa o serviço de preferências do usuário
+    user_service = UserPreferencesService(session)
 
-    # Exibe a tela de criação de usuário
-    user_dialog = UserCreationDialog(user_service)
-    if user_dialog.exec_():  # Se o usuário for criado com sucesso
-        usuario = user_service.carregar_usuario_existente(user_dialog.name_input.text())
-        if usuario:
-            # Inicializa a tela principal com o usuário
-            window = MainWindow(usuario)
-            window.show()
-            sys.exit(app.exec_())
+    while True:
+        # Exibe a tela de login primeiro
+        login_dialog = LoginDialog(user_service)
+        if login_dialog.exec_():  # Se o login for bem-sucedido
+            usuario = user_service.carregar_usuario_existente(login_dialog.name_input.text())
+            if usuario:
+                # Inicializa a tela principal com o usuário autenticado
+                window = MainWindow(usuario)
+                window.show()
+                sys.exit(app.exec_())
+        else:
+            # Se o login não for bem-sucedido ou o usuário clicar em criar conta
+            user_dialog = UserCreationDialog(user_service)
+            if user_dialog.exec_():  # Se o usuário for criado com sucesso
+                continue  # Retorna à tela de login
 
 if __name__ == "__main__":
     main()

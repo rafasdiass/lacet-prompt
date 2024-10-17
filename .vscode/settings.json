@@ -1,5 +1,10 @@
 {
     "python.analysis.extraPaths": [
         "./app_balance"
+    ],
+    "cSpell.words": [
+        "está",
+        "extraídos",
+        "pyjokes"
     ]
 }

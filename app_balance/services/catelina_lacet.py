@@ -2,7 +2,10 @@ import random
 from imdb import IMDb
 import pyjokes
 from app_balance.services.greeting_service import GreetingService
+import logging
 
+# Configurar logging
+logging.basicConfig(level=logging.INFO)
 
 class CatelinaLacetGPT:
     """
@@ -12,9 +15,7 @@ class CatelinaLacetGPT:
 
     def __init__(self, tipo_humor: str = "padrao", data_persistence_service=None):
         self.tipo_humor = tipo_humor
-        self.data_persistence_service = (
-            data_persistence_service  # Serviço de persistência de dados
-        )
+        self.data_persistence_service = data_persistence_service  # Serviço de persistência de dados
         self.greeting_service = GreetingService()  # Instancia o serviço de saudações
         self.imdb = IMDb()  # Para buscar referências de filmes e cultura pop
         self.joke_provider = pyjokes  # Para gerar piadas baseadas em humor
@@ -46,6 +47,9 @@ class CatelinaLacetGPT:
         Returns:
             str: Resposta gerada pela Catelina Lacet.
         """
+        logging.info(f"Gerando resposta para o prompt: {prompt}")
+        logging.info(f"Análise recebida: {analysis}")
+
         prompt_lower = prompt.lower()
 
         # Responder perguntas genéricas sobre a IA, como nome, idade e profissão
@@ -66,10 +70,16 @@ class CatelinaLacetGPT:
 
         # Verifica se o prompt é sobre finanças e obtém dados do serviço de persistência
         if self.is_financial_prompt(analysis):
+            logging.info("Analisando finanças")
+            if not self.data_persistence_service:
+                logging.error("Serviço de persistência de dados não foi inicializado corretamente.")
+                return "Desculpe, estou enfrentando problemas técnicos ao tentar acessar os dados financeiros."
+            
             financial_data = self.data_persistence_service.get_latest_financial_data()
             if financial_data:
                 return self.formulate_financial_response(financial_data)
             else:
+                logging.warning("Sem dados financeiros recentes.")
                 return "Parece que ainda não tenho dados financeiros recentes para você. Envie-me suas finanças para análise!"
 
         # Caso a pergunta não faça sentido ou seja confusa
@@ -78,58 +88,37 @@ class CatelinaLacetGPT:
     def is_financial_prompt(self, analysis: dict) -> bool:
         """
         Verifica se o prompt é relacionado a finanças, com base na análise prévia.
-
-        Args:
-            analysis (dict): Análise pré-processada do prompt.
-
-        Returns:
-            bool: Verdadeiro se o prompt for financeiro, falso caso contrário.
         """
-        return "finance" in analysis.get("categories", [])
+        logging.info("Verificando se o prompt é financeiro.")
+        return "finance" in analysis.get("keywords", [])
 
     def formulate_financial_response(self, financial_data: dict) -> str:
         """
         Formula uma resposta com base nos dados financeiros já processados.
-
-        Args:
-            financial_data (dict): Dados financeiros processados.
-
-        Returns:
-            str: Resposta com análise financeira.
         """
+        logging.info(f"Formulando resposta financeira com dados: {financial_data}")
+
         receita = financial_data.get("receita_projetada", 0)
         custos = financial_data.get("total_custos", 0)
         categorias = financial_data.get("categorias_custos", {})
 
-        # Formula a resposta financeira
         resposta = f"Receita projetada: R$ {receita:.2f}\n"
         resposta += f"Total de custos: R$ {custos:.2f}\n"
-
         resposta += "Categorias de custos:\n"
         for categoria, valor in categorias.items():
             resposta += f"- {categoria}: R$ {valor:.2f}\n"
 
         # Adiciona uma frase de humor, dependendo do humor atual da IA
         if self.tipo_humor == "sarcastico":
-            resposta += (
-                "\nEspero que você tenha algo sobrando depois desses gastos todos!"
-            )
+            resposta += "\nEspero que você tenha algo sobrando depois desses gastos todos!"
         elif self.tipo_humor == "compreensivo":
-            resposta += (
-                "\nNão se preocupe, vamos superar esses desafios financeiros juntos."
-            )
+            resposta += "\nNão se preocupe, vamos superar esses desafios financeiros juntos."
 
         return resposta
 
     def formulate_generic_or_funny_response(self, prompt: str) -> str:
         """
         Gera uma resposta genérica ou engraçada caso a pergunta seja confusa ou sem sentido.
-
-        Args:
-            prompt (str): O prompt original enviado pelo usuário.
-
-        Returns:
-            str: Uma resposta genérica ou engraçada.
         """
         generic_responses = [
             "Hmm, isso me pegou de surpresa! O que você acha sobre o assunto?",
