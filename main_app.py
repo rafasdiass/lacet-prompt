@@ -1,6 +1,6 @@
 import sys
 import os
-from PyQt5.QtWidgets import QApplication
+from dearpygui.dearpygui import *  # Importando a nova API do Dear PyGui
 from app_balance.gui_app import MainWindow
 from app_balance.users.user_creation_dialog import UserCreationDialog
 from app_balance.processamento.models import criar_tabelas
@@ -28,8 +28,6 @@ def verificar_tabelas():
 def main():
     verificar_tabelas()  # Verifica e garante que as tabelas estejam criadas antes de iniciar o app
 
-    app = QApplication(sys.argv)
-
     # Inicializa o serviço de usuário
     user_service = UserPreferencesService()
 
@@ -40,8 +38,7 @@ def main():
         if usuario:
             # Inicializa a tela principal com o usuário
             window = MainWindow(usuario)
-            window.show()
-            sys.exit(app.exec_())
+            start_dearpygui(primary_window="Catelina Lacet - Bem-vindo!")  # Inicializa Dear PyGui
 
 if __name__ == "__main__":
     main()
