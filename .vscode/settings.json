@@ -1,5 +1,6 @@
 {
     "python.analysis.extraPaths": [
-        "./app_balance"
+        "./app_balance",
+        "./check_"
     ]
 }

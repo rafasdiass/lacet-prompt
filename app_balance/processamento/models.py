@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy import create_engine
-from processamento.database_setup import Base
+from app_balance.processamento.database_setup import Base  # Ajustado o caminho da importação
 import datetime
 
 # Classe Usuario
