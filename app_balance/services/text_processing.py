@@ -10,6 +10,7 @@ logging.basicConfig(level=logging.INFO)
 env = Env()
 env.read_env()
 
+
 # Configurações da API OpenAI
 openai_key = env.str("OPENAI_API_KEY", default=None)
 organization_id = env.str("OPENAI_ORG_ID", default=None)
