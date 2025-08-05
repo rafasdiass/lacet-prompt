@@ -55,7 +55,7 @@ class UserPreferencesService:
         except SQLAlchemyError as e:
             self.session.rollback()
             logging.error(f"Erro ao criar o usuário: {str(e)}")
-            raise RuntimeError(f"Erro ao criar o usuário: {str(e)}")
+            raise RuntimeError(f"Erro ao criar o usuário: {str(e)}") from e
         except ValueError as e:
             logging.error(f"Erro de validação: {str(e)}")
             return None
