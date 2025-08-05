@@ -7,27 +7,46 @@ on:
 
 jobs:  
   build:    
-    runs-on: ubuntu-latest    
+    runs-on: ubuntu-latest
+    
     steps:      
-      - uses: actions/checkout@v4      
-      - name: Set up Python        
-        uses: actions/setup-python@v5        
+      # Checkout do código
+      - uses: actions/checkout@v4
+      
+      # Configuração do Python
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:          
-          python-version: "3.9.7"  # Alterado para uma versão suportada      
-      - uses: actions/setup-node@v4        
+          python-version: "3.9.x"  # Alterado para uma versão suportada mais geral, usa a última versão 3.9.x disponível
+      
+      # Configuração do Node.js
+      - name: Set up Node.js        
+        uses: actions/setup-node@v4        
         with:          
-          node-version: "18.x"  # Alterado para uma versão estável disponível          
-          registry-url: "https://registry.npmjs.org"      
+          node-version: "18.x"  # Usa a versão mais recente da série 18.x          
+          registry-url: "https://registry.npmjs.org"
+      
+      # Instalar dependências Python
       - name: Install Python dependencies        
         run: |          
-          python -m pip install --upgrade pip          
-          pip install -r requirements/dev.txt      
+          python -m pip install --upgrade pip
+          pip install -r requirements/dev.txt
+      
+      # Instalar dependências Node.js
       - name: Install Node dependencies        
-        run: npm install      
-      - run: cp .env.example .env      
+        run: npm install
+      
+      # Copiar o arquivo .env de exemplo para configuração local
+      - run: cp .env.example .env
+      
+      # Executar lints no código Node.js
       - name: Run Node lints        
-        run: npm run lint      
+        run: npm run lint
+      
+      # Executar lints no código Python usando pylint
       - name: Run Python lints        
-        run: pylint --errors-only  # Atualizado para usar pylint      
+        run: pylint --errors-only .
+      
+      # Executar testes Python usando pytest
       - name: Run Python tests        
-        run: pytest  # Atualizado para usar pytest
+        run: pytest
