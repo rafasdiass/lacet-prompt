@@ -83,9 +83,7 @@ class LoginDialog(QDialog):
         nome = self.name_input.text()
         senha = self.password_input.text()
 
-        # Validação do login aqui (adicionar a lógica correta para autenticação)
-        usuario = self.user_service.carregar_usuario_existente(nome)
-        if usuario:
+        if usuario := self.user_service.carregar_usuario_existente(nome):
             # Verifica a senha aqui, por exemplo usando bcrypt
             # Se a senha estiver correta, aceita o diálogo de login
             self.accept()  # Fecha o diálogo se o login for bem-sucedido
