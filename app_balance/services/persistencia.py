@@ -49,7 +49,7 @@ class DataPersistenceService:
         except Exception as e:
             self.session.rollback()
             logging.error(f"Erro ao salvar prompt e resposta: {str(e)}")
-            raise RuntimeError(f"Erro ao salvar prompt e resposta: {str(e)}")
+            raise RuntimeError(f"Erro ao salvar prompt e resposta: {str(e)}") from e
 
     def save_financial_analysis(self, categorias_custos: dict, total_custos: float, receita_projetada: float):
         """
