@@ -35,8 +35,9 @@ def main():
         # Exibe a tela de login primeiro
         login_dialog = LoginDialog(user_service)
         if login_dialog.exec_():  # Se o login for bem-sucedido
-            usuario = user_service.carregar_usuario_existente(login_dialog.name_input.text())
-            if usuario:
+            if usuario := user_service.carregar_usuario_existente(
+                login_dialog.name_input.text()
+            ):
                 # Inicializa o serviço GPT
                 gpt_service = GPTService(api_key="SUA_OPENAI_API_KEY")
 
