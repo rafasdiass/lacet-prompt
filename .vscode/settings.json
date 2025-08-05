@@ -1,6 +1,15 @@
 {
     "python.analysis.extraPaths": [
+<<<<<<< HEAD
+        "./app_balance"
+    ],
+    "cSpell.words": [
+        "está",
+        "extraídos",
+        "pyjokes"
+=======
         "./app_balance",
         "./check_"
+>>>>>>> main
     ]
 }

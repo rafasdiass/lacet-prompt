@@ -2,14 +2,14 @@ from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QLineEdit, QPushButton
 
 class UserCreationDialog(QDialog):
     """
-    Janela modal para criar um usuário com seleção de humor e idioma por menus suspensos.
+    Janela modal para criar um usuário com seleção de humor, idioma e senha por menus suspensos.
     Estilo com paleta de cores de Inverno Brilhante, com contraste e toques femininos.
     """
     def __init__(self, user_service):
         super().__init__()
         self.user_service = user_service
         self.setWindowTitle("Criar Usuário")
-        self.setGeometry(300, 300, 400, 300)
+        self.setGeometry(300, 300, 400, 350)
         self.setup_ui()
 
         # Aplicando o estilo ao diálogo inteiro
@@ -25,6 +25,11 @@ class UserCreationDialog(QDialog):
         # Email do usuário
         self.email_label = QLabel("Email:")
         self.email_input = QLineEdit()
+
+        # Campo de senha do usuário
+        self.password_label = QLabel("Senha:")
+        self.password_input = QLineEdit()
+        self.password_input.setEchoMode(QLineEdit.Password)  # Oculta a senha durante a digitação
 
         # Humor preferido com QComboBox
         self.humor_label = QLabel("Humor Preferido:")
@@ -45,6 +50,8 @@ class UserCreationDialog(QDialog):
         layout.addWidget(self.name_input)
         layout.addWidget(self.email_label)
         layout.addWidget(self.email_input)
+        layout.addWidget(self.password_label)
+        layout.addWidget(self.password_input)
         layout.addWidget(self.humor_label)
         layout.addWidget(self.humor_combo)
         layout.addWidget(self.language_label)
@@ -57,7 +64,6 @@ class UserCreationDialog(QDialog):
         """
         Aplica o estilo da paleta de cores Inverno Brilhante na interface.
         """
-        # Definindo os estilos para toda a janela
         self.setStyleSheet("""
             QDialog {
                 background-color: #1F1D36;
@@ -86,11 +92,6 @@ class UserCreationDialog(QDialog):
                 padding: 5px;
             }
 
-            QComboBox QAbstractItemView {
-                selection-background-color: #E94560;
-                selection-color: #F9F3F3;
-            }
-
             QPushButton {
                 background-color: #6A0572;
                 color: #F9F3F3;
@@ -107,15 +108,17 @@ class UserCreationDialog(QDialog):
     def criar_usuario(self):
         nome = self.name_input.text()
         email = self.email_input.text()
+        senha = self.password_input.text()  # Obtém a senha digitada
         humor = self.humor_combo.currentText()  # Obtém o texto selecionado no combo box
         idioma = self.language_combo.currentText()  # Obtém o idioma selecionado no combo box
 
         # Cria o usuário no banco de dados
-        usuario = self.user_service.criar_usuario_dinamico(nome, email, humor, idioma)
+        usuario = self.user_service.criar_usuario_dinamico(nome, email, humor, idioma, senha)
 
         if usuario:
             self.accept()  # Fecha o diálogo e retorna o controle para a janela principal
         else:
             self.name_input.clear()
             self.email_input.clear()
+            self.password_input.clear()
             self.name_input.setPlaceholderText("Erro! Tente novamente.")
