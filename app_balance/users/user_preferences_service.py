@@ -74,7 +74,7 @@ class UserPreferencesService:
         except SQLAlchemyError as e:
             self.session.rollback()
             logging.error(f"Erro ao carregar o usuário: {str(e)}")
-            raise RuntimeError(f"Erro ao carregar o usuário: {str(e)}")
+            raise RuntimeError(f"Erro ao carregar o usuário: {str(e)}") from e
 
     def validar_email(self, email: str):
         """Valida se o email está no formato correto."""
