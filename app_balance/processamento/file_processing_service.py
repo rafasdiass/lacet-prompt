@@ -6,14 +6,25 @@ from pypdf import PdfReader
 from docx import Document
 import logging
 
+# Configurar logging
+logging.basicConfig(level=logging.INFO)
+
 class FileProcessingService:
     def __init__(self, pdf_directory: Optional[str] = None, docx_directory: Optional[str] = None):
+        """
+        Inicializa o serviço de processamento de arquivos com diretórios opcionais para PDFs e DOCXs.
+
+        Args:
+            pdf_directory (str, opcional): O diretório onde os PDFs estão armazenados.
+            docx_directory (str, opcional): O diretório onde os DOCXs estão armazenados.
+        """
         self.pdf_directory = pdf_directory
         self.docx_directory = docx_directory
 
     def processar_arquivo(self, arquivo: bytes, tipo_arquivo: str) -> dict:
         """
         Processa arquivos Excel, PDF ou DOCX de acordo com o tipo especificado.
+
         Args:
             arquivo (bytes): O arquivo a ser processado.
             tipo_arquivo (str): O tipo do arquivo ('excel', 'pdf', 'docx').
@@ -33,6 +44,7 @@ class FileProcessingService:
     def processar_arquivo_excel(self, arquivo: bytes) -> dict:
         """
         Processa e extrai dados de um arquivo Excel.
+
         Args:
             arquivo (bytes): O arquivo Excel em bytes.
 
@@ -57,6 +69,7 @@ class FileProcessingService:
     def processar_arquivo_pdf(self, arquivo: bytes) -> str:
         """
         Processa e extrai dados de um arquivo PDF.
+
         Args:
             arquivo (bytes): O arquivo PDF em bytes.
 
@@ -78,6 +91,7 @@ class FileProcessingService:
     def processar_arquivo_docx(self, arquivo: bytes) -> str:
         """
         Processa e extrai dados de um arquivo DOCX.
+
         Args:
             arquivo (bytes): O arquivo DOCX em bytes.
 
@@ -99,7 +113,7 @@ class FileProcessingService:
     def processar_todos_documentos(self) -> Dict[str, Dict[str, str]]:
         """
         Processa todos os arquivos PDFs e DOCXs dos diretórios especificados.
-        
+
         Returns:
             dict: Um dicionário contendo o texto de todos os PDFs e DOCXs.
         """
@@ -110,25 +124,37 @@ class FileProcessingService:
     def processar_todos_pdfs(self) -> Dict[str, str]:
         """
         Processa todos os arquivos PDF de um diretório.
-        
+
         Returns:
             dict: Dicionário contendo os textos dos PDFs.
         """
         if not self.pdf_directory:
             raise ValueError("Nenhum diretório de PDFs especificado.")
-        pdf_texts = {filename: self.processar_arquivo_pdf(os.path.join(self.pdf_directory, filename))
-                     for filename in os.listdir(self.pdf_directory) if filename.endswith('.pdf')}
+        
+        pdf_texts = {}
+        for filename in os.listdir(self.pdf_directory):
+            if filename.endswith('.pdf'):
+                file_path = os.path.join(self.pdf_directory, filename)
+                with open(file_path, 'rb') as pdf_file:
+                    pdf_texts[filename] = self.processar_arquivo_pdf(pdf_file.read())
+                    
         return pdf_texts
 
     def processar_todos_docxs(self) -> Dict[str, str]:
         """
         Processa todos os arquivos DOCX de um diretório.
-        
+
         Returns:
             dict: Dicionário contendo os textos dos DOCXs.
         """
         if not self.docx_directory:
             raise ValueError("Nenhum diretório de DOCXs especificado.")
-        docx_texts = {filename: self.processar_arquivo_docx(os.path.join(self.docx_directory, filename))
-                      for filename in os.listdir(self.docx_directory) if filename.endswith('.docx')}
+        
+        docx_texts = {}
+        for filename in os.listdir(self.docx_directory):
+            if filename.endswith('.docx'):
+                file_path = os.path.join(self.docx_directory, filename)
+                with open(file_path, 'rb') as docx_file:
+                    docx_texts[filename] = self.processar_arquivo_docx(docx_file.read())
+                    
         return docx_texts

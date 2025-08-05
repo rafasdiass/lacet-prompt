@@ -1,5 +1,11 @@
 from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Text
+<<<<<<< HEAD
 from sqlalchemy.orm import relationship, declarative_base
+=======
+from sqlalchemy.orm import relationship
+from sqlalchemy import create_engine
+from app_balance.processamento.database_setup import Base  # Ajustado o caminho da importação
+>>>>>>> main
 import datetime
 
 Base = declarative_base()
