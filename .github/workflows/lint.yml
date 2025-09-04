@@ -15,7 +15,7 @@ jobs:
       
       # Configuração do Python
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:          
           python-version: "3.9.x"  # Alterado para uma versão suportada mais geral, usa a última versão 3.9.x disponível
       
